@@ -7,6 +7,7 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@pinia/nuxt",
     "@nuxtjs/leaflet",
+    "motion-v/nuxt",
   ],
   css: ["~/assets/css/main.css"],
 });
