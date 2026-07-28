@@ -9,5 +9,10 @@ export default defineNuxtConfig({
     "@nuxtjs/leaflet",
     "motion-v/nuxt",
   ],
+
+  routeRules: {
+    "/": { prerender: true },
+  },
+
   css: ["~/assets/css/main.css"],
 });

@@ -75,20 +75,3 @@ AlertaFuego is a near-real-time wildfire detection system for Argentina, develop
 as a Proyecto Final de Ingeniería (PFI) at UADE (Ingeniería en Informática). It
 combines geostationary satellite imagery (GOES-19) with an AI model trained using
 polar-orbiting satellite fire products (VIIRS) as ground truth labels.
-
-## Datasets
-
-https://developers.google.com/earth-engine/datasets/catalog/NASA_LANCE_NOAA20_VIIRS_C2 Earth Engine Snippet ee.ImageCollection("NASA/LANCE/NOAA20_VIIRS/C2") Cadence 1 Day
-
-https://developers.google.com/earth-engine/datasets/catalog/NASA_LANCE_SNPP_VIIRS_C2 Earth Engine Snippet ee.ImageCollection("NASA/LANCE/SNPP_VIIRS/C2") Cadence 1 Day
-
-https://developers.google.com/earth-engine/datasets/catalog/NOAA_GOES_19_MCMIPF?hl=es-419 Earth Engine Snippet ee.ImageCollection("NOAA/GOES/19/MCMIPF") Cadence 10 Minutes
-
-## Repository Structure
-
-```
-alertafuego/
-├── CLAUDE.md
-├── backend/
-└── model/
-```
