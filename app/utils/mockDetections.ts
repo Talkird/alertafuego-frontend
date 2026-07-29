@@ -21,6 +21,11 @@ const AR_BOUNDS = {
 
 const PIXEL_PADDING = 0.05 // ~ GOES pixel footprint in degrees
 
+// Fixed anchor (not Date.now()) so generated timestamps are identical on
+// server and client renders — Date.now() would differ between the two,
+// causing SSR/CSR hydration mismatches wherever these dates are displayed.
+const REFERENCE_TIME = new Date('2026-07-28T12:00:00Z').getTime()
+
 // Deterministic PRNG (mulberry32) so mock data is stable across reloads
 function mulberry32(seed: number) {
   let a = seed
@@ -44,7 +49,7 @@ function generateDetection(id: number): Detection {
   const latitude = randomInRange(AR_BOUNDS.minLat, AR_BOUNDS.maxLat)
 
   const daysAgo = randomInRange(0, 14)
-  const imageTime = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000)
+  const imageTime = new Date(REFERENCE_TIME - daysAgo * 24 * 60 * 60 * 1000)
   const detectedAt = new Date(imageTime.getTime() + randomInRange(30, 300) * 1000)
 
   const threshold = 0.5

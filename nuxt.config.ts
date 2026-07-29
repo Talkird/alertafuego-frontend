@@ -8,10 +8,12 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@nuxtjs/leaflet",
     "motion-v/nuxt",
+    "@nuxtjs/seo",
+    "@nuxt/eslint",
   ],
 
-  routeRules: {
-    "/": { prerender: true },
+  site: {
+    name: "AlertaFuego",
   },
 
   css: ["~/assets/css/main.css"],
