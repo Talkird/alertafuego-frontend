@@ -10,6 +10,7 @@ export default defineNuxtConfig({
     "motion-v/nuxt",
     "@nuxtjs/seo",
     "@nuxt/eslint",
+    "@nuxtjs/supabase",
   ],
 
   site: {
