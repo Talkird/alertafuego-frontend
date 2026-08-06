@@ -7,3 +7,4 @@
 - [ ] Completar utilizacion de estados globales (Pinia)
 - [ ] Agregar filtros al mapa
 - [ ] Landing page
+- [ ] Agregar secrets en Vercel
