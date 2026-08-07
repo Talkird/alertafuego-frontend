@@ -1,49 +1,31 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+
 defineProps<{
   collapsed?: boolean;
 }>();
 
+async function signOut() {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.error("Error signing out:", error.message);
+  } else {
+    console.log("Signed out successfully");
+    navigateTo("/login");
+  }
+}
+
 const colorMode = useColorMode();
-const appConfig = useAppConfig();
 
-const colors = [
-  "red",
-  "orange",
-  "amber",
-  "yellow",
-  "lime",
-  "green",
-  "emerald",
-  "teal",
-  "cyan",
-  "sky",
-  "blue",
-  "indigo",
-  "violet",
-  "purple",
-  "fuchsia",
-  "pink",
-  "rose",
-];
-const neutrals = [
-  "slate",
-  "gray",
-  "zinc",
-  "neutral",
-  "stone",
-  "taupe",
-  "mauve",
-  "mist",
-  "olive",
-];
-
-const user = ref({
-  name: "AlertaFuego Dev",
+const displayUser = ref({
+  name: user.value?.email,
   avatar: {
     src: "/icon.png",
-    alt: "AlertaFuego Dev",
+    alt: "User Avatar",
   },
 });
 
@@ -51,15 +33,11 @@ const items = computed<DropdownMenuItem[][]>(() => [
   [
     {
       type: "label",
-      label: user.value.name,
-      avatar: user.value.avatar,
+      label: displayUser.value.name,
+      avatar: displayUser.value.avatar,
     },
   ],
   [
-    {
-      label: "Profile",
-      icon: "i-lucide-user",
-    },
     {
       label: "Settings",
       icon: "i-lucide-settings",
@@ -109,6 +87,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
     {
       label: "Log out",
       icon: "i-lucide-log-out",
+      onClick: signOut,
     },
   ],
 ]);
@@ -123,9 +102,10 @@ const items = computed<DropdownMenuItem[][]>(() => [
     }"
   >
     <UButton
+      v-if="user"
       v-bind="{
-        ...user,
-        label: collapsed ? undefined : user?.name,
+        ...user.value?.email,
+        label: collapsed ? undefined : displayUser.name,
         trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down',
       }"
       color="neutral"
