@@ -75,3 +75,5 @@ AlertaFuego is a near-real-time wildfire detection system for Argentina, develop
 as a Proyecto Final de Ingeniería (PFI) at UADE (Ingeniería en Informática). It
 combines geostationary satellite imagery (GOES-19) with an AI model trained using
 polar-orbiting satellite fire products (VIIRS) as ground truth labels.
+
+Backend GitHub Repository: https://github.com/Talkird/alertafuego-backend

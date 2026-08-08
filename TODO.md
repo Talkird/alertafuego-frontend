@@ -8,3 +8,4 @@
 - [ ] Agregar filtros al mapa
 - [ ] Landing page
 - [ ] Agregar secrets en Vercel
+- [ ] Cambiar el nombre de la app de Supabase de "https://viduxyduxzcujpbbfsmw.supabase.co" a AlertaFuego

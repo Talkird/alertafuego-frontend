@@ -67,7 +67,7 @@ function formatDate(iso: string): string {
           <LPopup :options="{ className: 'af-popup', closeButton: false }">
             <div class="min-w-44 space-y-2 p-0.5">
               <div class="flex items-center justify-between gap-3">
-                <span class="text-xs font-medium text-muted">Probabilidad</span>
+                <span class="text-muted text-xs font-medium">Probabilidad</span>
                 <UBadge
                   :color="confidenceColor(detection.probability)"
                   variant="subtle"
@@ -75,7 +75,7 @@ function formatDate(iso: string): string {
                   {{ (detection.probability * 100).toFixed(1) }}%
                 </UBadge>
               </div>
-              <p class="text-sm text-highlighted">
+              <p class="text-highlighted text-sm">
                 {{ formatDate(detection.detected_at) }}
               </p>
             </div>
