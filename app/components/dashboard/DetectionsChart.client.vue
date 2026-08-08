@@ -19,13 +19,13 @@ import {
   VisTooltip,
 } from "@unovis/vue";
 import { useElementSize } from "@vueuse/core";
-import type { Detection } from "~/utils/mockDetections";
+import type { StoredDetection } from "~/types";
 import type { Period, Range } from "~/types";
 
 const cardRef = useTemplateRef<HTMLElement | null>("cardRef");
 
 const props = defineProps<{
-  detections: Detection[];
+  detections: StoredDetection[];
   period: Period;
   range: Range;
 }>();

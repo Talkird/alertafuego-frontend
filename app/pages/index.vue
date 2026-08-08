@@ -5,20 +5,12 @@ useSeoMeta({
     "Mapa en tiempo casi real de focos de incendio detectados en Argentina mediante imágenes satelitales GOES-19.",
 });
 
+const { data: detections } = useDetections();
+
 function circleColor(probability: number): string {
   if (probability >= 0.8) return "#dc2626";
   if (probability >= 0.65) return "#f97316";
   return "#facc15";
-}
-
-function confidenceColor(probability: number): "error" | "warning" | "neutral" {
-  if (probability >= 0.8) return "error";
-  if (probability >= 0.65) return "warning";
-  return "neutral";
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("es-AR");
 }
 </script>
 
@@ -53,32 +45,16 @@ function formatDate(iso: string): string {
           no-wrap
         />
         <LCircleMarker
-          v-for="detection in mockDetections"
+          v-for="detection in detections"
           :key="detection.id"
-          :lat-lng="[
-            ewkbToLonLat(detection.location).latitude,
-            ewkbToLonLat(detection.location).longitude,
-          ]"
+          :lat-lng="[detection.lat, detection.lon]"
           :radius="6"
           :color="circleColor(detection.probability)"
           :fill-color="circleColor(detection.probability)"
           :fill-opacity="0.7"
         >
           <LPopup :options="{ className: 'af-popup', closeButton: false }">
-            <div class="min-w-44 space-y-2 p-0.5">
-              <div class="flex items-center justify-between gap-3">
-                <span class="text-muted text-xs font-medium">Probabilidad</span>
-                <UBadge
-                  :color="confidenceColor(detection.probability)"
-                  variant="subtle"
-                >
-                  {{ (detection.probability * 100).toFixed(1) }}%
-                </UBadge>
-              </div>
-              <p class="text-highlighted text-sm">
-                {{ formatDate(detection.detected_at) }}
-              </p>
-            </div>
+            <MapDetectionPopup :detection="detection" />
           </LPopup>
         </LCircleMarker>
       </LMap>

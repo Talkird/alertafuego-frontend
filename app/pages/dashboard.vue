@@ -3,8 +3,7 @@ import { sub } from "date-fns";
 import type { TableColumn } from "@nuxt/ui";
 import type { Row } from "@tanstack/vue-table";
 import { getPaginationRowModel } from "@tanstack/table-core";
-import type { Detection } from "~/utils/mockDetections";
-import type { Period, Range } from "~/types";
+import type { StoredDetection, Period, Range } from "~/types";
 
 useSeoMeta({
   title: "Dashboard",
@@ -22,12 +21,12 @@ const range = shallowRef<Range>({
 });
 const period = ref<Period>("daily");
 
-const filteredDetections = computed(() =>
-  mockDetections.filter((detection) => {
-    const imageTime = new Date(detection.image_time);
-    return imageTime >= range.value.start && imageTime <= range.value.end;
-  }),
-);
+const query = computed(() => ({
+  since: range.value.start.toISOString(),
+  until: range.value.end.toISOString(),
+}));
+
+const { data: detections } = useDetections(query);
 
 function confidenceColor(
   probability: number,
@@ -41,24 +40,21 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("es-AR");
 }
 
-function getRowItems(row: Row<Detection>) {
-  const { latitude, longitude } = ewkbToLonLat(row.original.location);
+function getRowItems(row: Row<StoredDetection>) {
+  const { lat, lon } = row.original;
 
   return [
     {
       label: "Ver en Google Maps",
       icon: "i-lucide-map-pin",
       onSelect() {
-        window.open(
-          `https://www.google.com/maps?q=${latitude},${longitude}`,
-          "_blank",
-        );
+        window.open(`https://www.google.com/maps?q=${lat},${lon}`, "_blank");
       },
     },
   ];
 }
 
-const columns: TableColumn<Detection>[] = [
+const columns: TableColumn<StoredDetection>[] = [
   {
     accessorKey: "id",
     header: "ID",
@@ -66,10 +62,8 @@ const columns: TableColumn<Detection>[] = [
   {
     id: "location",
     header: "Ubicación",
-    cell: ({ row }) => {
-      const { latitude, longitude } = ewkbToLonLat(row.original.location);
-      return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-    },
+    cell: ({ row }) =>
+      `${row.original.lat.toFixed(4)}, ${row.original.lon.toFixed(4)}`,
   },
   {
     accessorKey: "probability",
@@ -83,6 +77,10 @@ const columns: TableColumn<Detection>[] = [
         },
         () => `${(row.original.probability * 100).toFixed(1)}%`,
       ),
+  },
+  {
+    accessorKey: "report_count",
+    header: "Reportes",
   },
   {
     accessorKey: "detected_at",
@@ -147,14 +145,14 @@ const pagination = ref({
 
     <template #body>
       <DashboardDetectionsChart
-        :detections="filteredDetections"
+        :detections="detections ?? []"
         :period="period"
         :range="range"
       />
 
       <UTable
         ref="table"
-        :data="filteredDetections"
+        :data="detections ?? []"
         :columns="columns"
         v-model:pagination="pagination"
         :pagination-options="{
