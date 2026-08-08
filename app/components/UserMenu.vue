@@ -21,13 +21,13 @@ async function signOut() {
 
 const colorMode = useColorMode();
 
-const displayUser = ref({
+const displayUser = computed(() => ({
   name: user.value?.email,
   avatar: {
-    src: "/icon.png",
-    alt: "User Avatar",
+    src: user.value?.user_metadata?.avatar_url || "/icon.png",
+    alt: user.value?.email ?? "User avatar",
   },
-});
+}));
 
 const items = computed<DropdownMenuItem[][]>(() => [
   [
@@ -39,17 +39,17 @@ const items = computed<DropdownMenuItem[][]>(() => [
   ],
   [
     {
-      label: "Settings",
+      label: "Configuración",
       icon: "i-lucide-settings",
     },
   ],
   [
     {
-      label: "Appearance",
+      label: "Apariencia",
       icon: "i-lucide-sun-moon",
       children: [
         {
-          label: "Light",
+          label: "Claro",
           icon: "i-lucide-sun",
           type: "checkbox",
           checked: colorMode.value === "light",
@@ -60,7 +60,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
           },
         },
         {
-          label: "Dark",
+          label: "Oscuro",
           icon: "i-lucide-moon",
           type: "checkbox",
           checked: colorMode.value === "dark",
@@ -79,13 +79,13 @@ const items = computed<DropdownMenuItem[][]>(() => [
 
   [
     {
-      label: "GitHub repository",
+      label: "Repositorio de GitHub",
       icon: "i-simple-icons-github",
       to: "https://github.com/Talkird/alertafuego-frontend",
       target: "_blank",
     },
     {
-      label: "Log out",
+      label: "Cerrar sesión",
       icon: "i-lucide-log-out",
       onClick: signOut,
     },
@@ -103,11 +103,9 @@ const items = computed<DropdownMenuItem[][]>(() => [
   >
     <UButton
       v-if="user"
-      v-bind="{
-        ...user.value?.email,
-        label: collapsed ? undefined : displayUser.name,
-        trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down',
-      }"
+      :avatar="displayUser.avatar"
+      :label="collapsed ? undefined : displayUser.name"
+      :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
       color="neutral"
       variant="ghost"
       block
