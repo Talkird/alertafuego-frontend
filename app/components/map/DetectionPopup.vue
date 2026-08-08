@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import type { ReportCategory, ReportPublic, StoredDetection } from "~/types";
+import { useLocalStorage } from "@vueuse/core";
+import type {
+  ReportCategory,
+  ReportCreate,
+  ReportPublic,
+  StoredDetection,
+} from "~/types";
 
 const props = defineProps<{
   detection: StoredDetection;
@@ -17,6 +23,29 @@ const category = ref<ReportCategory>("other");
 const comment = ref("");
 const submitting = ref(false);
 const showForm = ref(false);
+
+// El backend no expone quién hizo cada reporte (GET es público), así que
+// guardamos localmente qué reportó este usuario para poder ofrecer "Editar".
+const myReports = useLocalStorage<Record<string, ReportCreate>>(
+  "alertafuego-my-reports",
+  {},
+);
+
+const myReportKey = computed(() =>
+  user.value ? `${user.value.id}:${props.detection.id}` : null,
+);
+
+const myReport = computed(() =>
+  myReportKey.value ? myReports.value[myReportKey.value] : undefined,
+);
+
+function openForm() {
+  if (myReport.value) {
+    category.value = myReport.value.category;
+    comment.value = myReport.value.comment ?? "";
+  }
+  showForm.value = true;
+}
 
 async function loadReports() {
   loadingReports.value = true;
@@ -44,18 +73,27 @@ async function submitReport() {
 
   submitting.value = true;
   try {
-    await createReport(
-      props.detection.id,
-      { category: category.value, comment: comment.value || null },
-      session.value.access_token,
-    );
+    const payload: ReportCreate = {
+      category: category.value,
+      comment: comment.value || null,
+    };
+    const isEdit = !!myReport.value;
+
+    if (isEdit) {
+      await updateReport(props.detection.id, payload, session.value.access_token);
+    } else {
+      await createReport(props.detection.id, payload, session.value.access_token);
+    }
+
+    if (myReportKey.value) {
+      myReports.value[myReportKey.value] = payload;
+    }
+
     toast.add({
-      title: "Reporte enviado",
+      title: isEdit ? "Reporte actualizado" : "Reporte enviado",
       description: "Gracias por ayudar a mejorar las detecciones.",
       color: "success",
     });
-    comment.value = "";
-    category.value = "other";
     showForm.value = false;
     await loadReports();
   } catch {
@@ -113,11 +151,11 @@ async function submitReport() {
       size="xs"
       variant="subtle"
       color="neutral"
-      icon="i-lucide-flag"
+      :icon="myReport ? 'i-lucide-pencil' : 'i-lucide-flag'"
       block
-      @click.stop="showForm = true"
+      @click.stop="openForm"
     >
-      Reportar falso positivo
+      {{ myReport ? "Editar reporte" : "Reportar falso positivo" }}
     </UButton>
 
     <div v-show="showForm" class="space-y-2 border-t border-default pt-2">

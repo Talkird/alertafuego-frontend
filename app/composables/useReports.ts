@@ -41,3 +41,18 @@ export async function createReport(
     body: payload,
   });
 }
+
+export async function updateReport(
+  detectionId: number,
+  payload: ReportCreate,
+  accessToken: string,
+) {
+  const config = useRuntimeConfig();
+
+  return $fetch<ReportPublic>(`/detections/${detectionId}/reports`, {
+    baseURL: config.public.apiBase,
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: payload,
+  });
+}
