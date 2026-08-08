@@ -1,0 +1,412 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "FastAPI", "version": "0.1.0" },
+  "paths": {
+    "/detect/demo": {
+      "post": {
+        "summary": "Detect Demo",
+        "operationId": "detect_demo_detect_demo_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DetectionResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/detect/argentina": {
+      "post": {
+        "summary": "Detect Argentina",
+        "operationId": "detect_argentina_detect_argentina_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DetectionResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/detections": {
+      "get": {
+        "summary": "Get Detections",
+        "operationId": "get_detections_detections_get",
+        "parameters": [
+          {
+            "name": "west",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "number" }, { "type": "null" }],
+              "title": "West"
+            }
+          },
+          {
+            "name": "south",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "number" }, { "type": "null" }],
+              "title": "South"
+            }
+          },
+          {
+            "name": "east",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "number" }, { "type": "null" }],
+              "title": "East"
+            }
+          },
+          {
+            "name": "north",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "number" }, { "type": "null" }],
+              "title": "North"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                { "type": "string", "format": "date-time" },
+                { "type": "null" }
+              ],
+              "title": "Since"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                { "type": "string", "format": "date-time" },
+                { "type": "null" }
+              ],
+              "title": "Until"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 5000,
+              "default": 500,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/StoredDetection" },
+                  "title": "Response Get Detections Detections Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/detections/{detection_id}/reports": {
+      "get": {
+        "summary": "Get Reports",
+        "operationId": "get_reports_detections__detection_id__reports_get",
+        "parameters": [
+          {
+            "name": "detection_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Detection Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ReportPublic" },
+                  "title": "Response Get Reports Detections  Detection Id  Reports Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Report False Positive",
+        "operationId": "report_false_positive_detections__detection_id__reports_post",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "detection_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Detection Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReportCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReportResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Read Root",
+        "operationId": "read_root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BBoxSchema": {
+        "properties": {
+          "west": { "type": "number", "title": "West" },
+          "south": { "type": "number", "title": "South" },
+          "east": { "type": "number", "title": "East" },
+          "north": { "type": "number", "title": "North" }
+        },
+        "type": "object",
+        "required": ["west", "south", "east", "north"],
+        "title": "BBoxSchema"
+      },
+      "Detection": {
+        "properties": {
+          "lat": { "type": "number", "title": "Lat" },
+          "lon": { "type": "number", "title": "Lon" },
+          "probability": { "type": "number", "title": "Probability" }
+        },
+        "type": "object",
+        "required": ["lat", "lon", "probability"],
+        "title": "Detection"
+      },
+      "DetectionResponse": {
+        "properties": {
+          "image_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Image Time"
+          },
+          "bbox": { "$ref": "#/components/schemas/BBoxSchema" },
+          "threshold": { "type": "number", "title": "Threshold" },
+          "chunk_count": { "type": "integer", "title": "Chunk Count" },
+          "detection_count": { "type": "integer", "title": "Detection Count" },
+          "detections": {
+            "items": { "$ref": "#/components/schemas/Detection" },
+            "type": "array",
+            "title": "Detections"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_time",
+          "bbox",
+          "threshold",
+          "chunk_count",
+          "detection_count",
+          "detections"
+        ],
+        "title": "DetectionResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": { "$ref": "#/components/schemas/ValidationError" },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ReportCategory": {
+        "type": "string",
+        "enum": [
+          "industrial_activity",
+          "controlled_burn",
+          "gas_flare",
+          "sun_glint",
+          "sensor_noise",
+          "other"
+        ],
+        "title": "ReportCategory"
+      },
+      "ReportCreate": {
+        "properties": {
+          "category": { "$ref": "#/components/schemas/ReportCategory" },
+          "comment": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Comment"
+          }
+        },
+        "type": "object",
+        "required": ["category"],
+        "title": "ReportCreate"
+      },
+      "ReportPublic": {
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "category": { "$ref": "#/components/schemas/ReportCategory" },
+          "comment": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Comment"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": ["id", "category", "comment", "created_at"],
+        "title": "ReportPublic",
+        "description": "Report shape for public listing - omits user_id, reporter identity isn't exposed."
+      },
+      "ReportResponse": {
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "detection_id": { "type": "integer", "title": "Detection Id" },
+          "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+          "category": { "$ref": "#/components/schemas/ReportCategory" },
+          "comment": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Comment"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "detection_id",
+          "user_id",
+          "category",
+          "comment",
+          "created_at"
+        ],
+        "title": "ReportResponse"
+      },
+      "StoredDetection": {
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "lat": { "type": "number", "title": "Lat" },
+          "lon": { "type": "number", "title": "Lon" },
+          "probability": { "type": "number", "title": "Probability" },
+          "image_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Image Time"
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Detected At"
+          },
+          "bbox": { "$ref": "#/components/schemas/BBoxSchema" },
+          "threshold": { "type": "number", "title": "Threshold" },
+          "report_count": { "type": "integer", "title": "Report Count" }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "lat",
+          "lon",
+          "probability",
+          "image_time",
+          "detected_at",
+          "bbox",
+          "threshold",
+          "report_count"
+        ],
+        "title": "StoredDetection",
+        "description": "One row from the `detections` table - shape mirrors the DB schema directly."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" },
+          "input": { "title": "Input" },
+          "ctx": { "type": "object", "title": "Context" }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": { "HTTPBearer": { "type": "http", "scheme": "bearer" } }
+  }
+}
