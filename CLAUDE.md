@@ -77,3 +77,5 @@ combines geostationary satellite imagery (GOES-19) with an AI model trained usin
 polar-orbiting satellite fire products (VIIRS) as ground truth labels.
 
 Backend GitHub Repository: https://github.com/Talkird/alertafuego-backend
+Backend Docs: https://localhost:8000/docs
+Backend OpenAPI Spec: https://localhost:8000/openapi.json

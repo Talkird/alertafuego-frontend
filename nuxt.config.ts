@@ -17,5 +17,11 @@ export default defineNuxtConfig({
     name: "AlertaFuego",
   },
 
+  runtimeConfig: {
+    public: {
+      apiBase: "http://localhost:8000",
+    },
+  },
+
   css: ["~/assets/css/main.css"],
 });
