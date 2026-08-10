@@ -1,11 +1,34 @@
 <script lang="ts" setup>
+import { sub } from "date-fns";
+import type { Range } from "~/types";
+
 useSeoMeta({
   title: "Mapa",
   description:
     "Mapa en tiempo casi real de focos de incendio detectados en Argentina mediante imágenes satelitales GOES-19.",
 });
 
-const { data: detections } = useDetections();
+const range = shallowRef<Range>({
+  start: sub(new Date(), { days: 14 }),
+  end: new Date(),
+});
+const minConfidence = ref(0);
+const maxReports = ref(20);
+
+const query = computed(() => ({
+  since: range.value.start.toISOString(),
+  until: range.value.end.toISOString(),
+}));
+
+const { data: detections } = useDetections(query);
+
+const filteredDetections = computed(() =>
+  (detections.value ?? []).filter(
+    (detection) =>
+      detection.probability * 100 >= minConfidence.value &&
+      detection.report_count <= maxReports.value,
+  ),
+);
 
 function circleColor(probability: number): string {
   if (probability >= 0.8) return "#dc2626";
@@ -22,6 +45,16 @@ function circleColor(probability: number): string {
           <UDashboardSidebarCollapse />
         </template>
       </UDashboardNavbar>
+
+      <UDashboardToolbar>
+        <template #left>
+          <MapFilters
+            v-model:range="range"
+            v-model:min-confidence="minConfidence"
+            v-model:max-reports="maxReports"
+          />
+        </template>
+      </UDashboardToolbar>
     </template>
 
     <template #body>
@@ -38,14 +71,15 @@ function circleColor(probability: number): string {
         :use-global-leaflet="false"
       >
         <LTileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&amp;copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+          url="https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png"
+          attribution='&amp;copy; <a href="https://www.ign.gob.ar/">Instituto Geográfico Nacional</a>'
           layer-type="base"
-          name="OpenStreetMap"
+          name="Argenmap (IGN)"
           no-wrap
         />
+
         <LCircleMarker
-          v-for="detection in detections"
+          v-for="detection in filteredDetections"
           :key="detection.id"
           :lat-lng="[detection.lat, detection.lon]"
           :radius="6"
