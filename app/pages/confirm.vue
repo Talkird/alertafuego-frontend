@@ -9,7 +9,6 @@ watch(
   user,
   () => {
     if (user.value) {
-      // Redirect to protected page
       return navigateTo("/");
     }
   },
@@ -18,5 +17,5 @@ watch(
 </script>
 
 <template>
-  <div>Esperando inicio de sesión...</div>
+  <div class="text-center">Esperando inicio de sesión...</div>
 </template>
