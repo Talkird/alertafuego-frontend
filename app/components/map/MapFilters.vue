@@ -25,7 +25,7 @@ const maxReportsLabel = computed(() =>
         icon="i-lucide-gauge"
         truncate
         :label="`Confianza mínima: ${minConfidence}%`"
-        class="w-72 justify-start tabular-nums data-[state=open]:bg-elevated"
+        class="w-60 justify-start tabular-nums data-[state=open]:bg-elevated"
       />
 
       <template #content>
@@ -43,7 +43,7 @@ const maxReportsLabel = computed(() =>
         icon="i-lucide-flag"
         truncate
         :label="`Reportes máximos: ${maxReportsLabel}`"
-        class="w-80 justify-start tabular-nums data-[state=open]:bg-elevated"
+        class="w-64 justify-start tabular-nums data-[state=open]:bg-elevated"
       />
 
       <template #content>

@@ -7,7 +7,6 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@pinia/nuxt",
     "@nuxtjs/leaflet",
-    "motion-v/nuxt",
     "@nuxtjs/seo",
     "@nuxt/eslint",
     "@nuxtjs/supabase",
@@ -19,7 +18,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: "http://localhost:8000",
+      apiBase: "http://127.0.0.1:8000",
     },
   },
 
