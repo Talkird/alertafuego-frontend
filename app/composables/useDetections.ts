@@ -1,4 +1,3 @@
-import { toValue } from "vue";
 import type { StoredDetection } from "~/types";
 
 export interface DetectionsQuery {
@@ -19,21 +18,14 @@ export function useDetections(
 
   // useFetch auto-derives its cache key from this file's source location,
   // so every caller of this composable (Mapa, Dashboard) would otherwise
-  // collide on the same key. Key it explicitly off the route + real query
-  // so each caller gets its own cache entry and always fetches fresh.
-  const result = useFetch<StoredDetection[]>("/detections", {
+  // collide on the same key. `key` identifies the logical resource and
+  // must be a stable string per caller — `query` is what useFetch already
+  // watches reactively to decide when to refetch, so the key doesn't need
+  // to (and shouldn't) change with it.
+  return useFetch<StoredDetection[]>("/detections", {
     baseURL: config.public.apiBase,
     query,
     default: () => [],
-    key: () =>
-      `detections:${route.path}:${JSON.stringify(toValue(query) ?? {})}`,
+    key: `detections:${route.path}`,
   });
-
-  // Force a real client-side fetch right after mount as a guarantee,
-  // regardless of whatever the initial SSR/immediate fetch resolved to.
-  onMounted(() => {
-    result.refresh();
-  });
-
-  return result;
 }

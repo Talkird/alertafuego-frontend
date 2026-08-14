@@ -77,25 +77,29 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-  <UAuthForm
-    v-if="!sent"
-    :schema="schema"
-    :fields="fields"
-    :providers="providers"
-    :loading="loading"
-    separator="o"
-    title="Iniciar sesión"
-    description="Te enviaremos un enlace de acceso a tu correo electrónico."
-    :submit="{ label: 'Enviar enlace de acceso' }"
-    @submit="onSubmit"
-  />
+  <div class="flex flex-col items-center justify-center gap-4 p-4">
+    <UPageCard class="w-full max-w-md">
+      <UAuthForm
+        v-if="!sent"
+        :schema="schema"
+        :fields="fields"
+        :providers="providers"
+        :loading="loading"
+        separator="o"
+        title="Iniciar sesión"
+        description="Podés iniciar sesión con Google o con tu correo electrónico."
+        :submit="{ label: 'Enviar enlace de acceso único' }"
+        @submit="onSubmit"
+      />
 
-  <UAlert
-    v-else
-    icon="i-lucide-mail-check"
-    color="success"
-    variant="subtle"
-    title="Revisá tu correo"
-    description="Te enviamos un enlace de acceso. Abrilo desde este dispositivo para iniciar sesión."
-  />
+      <UAlert
+        v-else
+        icon="i-lucide-mail-check"
+        color="success"
+        variant="subtle"
+        title="Revisá tu correo"
+        description="Te enviamos un enlace de acceso. Abrilo desde este dispositivo para iniciar sesión."
+      />
+    </UPageCard>
+  </div>
 </template>

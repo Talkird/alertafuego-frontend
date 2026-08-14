@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { sub } from "date-fns";
 import type { TableColumn } from "@nuxt/ui";
-import type { Row } from "@tanstack/vue-table";
+import type { Column, Row } from "@tanstack/vue-table";
 import { getPaginationRowModel } from "@tanstack/table-core";
 import type { StoredDetection, Period, Range } from "~/types";
 
@@ -16,7 +16,7 @@ const UButton = resolveComponent("UButton");
 const UDropdownMenu = resolveComponent("UDropdownMenu");
 
 const range = shallowRef<Range>({
-  start: sub(new Date(), { days: 14 }),
+  start: sub(new Date(), { days: 30 }),
   end: new Date(),
 });
 const period = ref<Period>("daily");
@@ -28,16 +28,62 @@ const query = computed(() => ({
 
 const { data: detections } = useDetections(query);
 
-function confidenceColor(
-  probability: number,
-): "error" | "warning" | "neutral" {
+function confidenceColor(probability: number): "error" | "warning" | "neutral" {
   if (probability >= 0.8) return "error";
   if (probability >= 0.65) return "warning";
   return "neutral";
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("es-AR");
+  const utcIso = iso.endsWith("Z") ? iso : `${iso}Z`;
+  return new Date(utcIso).toLocaleString("es-AR", { hour12: false });
+}
+
+function getHeader(column: Column<StoredDetection, unknown>, label: string) {
+  const isSorted = column.getIsSorted();
+
+  return h(
+    UDropdownMenu,
+    {
+      content: { align: "start" },
+      "aria-label": "Ordenar",
+      items: [
+        {
+          label: "Ascendente",
+          icon: "i-lucide-arrow-up-narrow-wide",
+          type: "checkbox",
+          checked: isSorted === "asc",
+          onSelect: () => {
+            if (isSorted === "asc") column.clearSorting();
+            else column.toggleSorting(false);
+          },
+        },
+        {
+          label: "Descendente",
+          icon: "i-lucide-arrow-down-wide-narrow",
+          type: "checkbox",
+          checked: isSorted === "desc",
+          onSelect: () => {
+            if (isSorted === "desc") column.clearSorting();
+            else column.toggleSorting(true);
+          },
+        },
+      ],
+    },
+    () =>
+      h(UButton, {
+        color: "neutral",
+        variant: "ghost",
+        label,
+        icon: isSorted
+          ? isSorted === "asc"
+            ? "i-lucide-arrow-up-narrow-wide"
+            : "i-lucide-arrow-down-wide-narrow"
+          : "i-lucide-arrow-up-down",
+        class: "-mx-2.5 data-[state=open]:bg-elevated",
+        "aria-label": `Ordenar por ${isSorted === "asc" ? "descendente" : "ascendente"}`,
+      }),
+  );
 }
 
 function getRowItems(row: Row<StoredDetection>) {
@@ -57,7 +103,7 @@ function getRowItems(row: Row<StoredDetection>) {
 const columns: TableColumn<StoredDetection>[] = [
   {
     accessorKey: "id",
-    header: "ID",
+    header: ({ column }) => getHeader(column, "ID"),
   },
   {
     id: "location",
@@ -67,7 +113,7 @@ const columns: TableColumn<StoredDetection>[] = [
   },
   {
     accessorKey: "probability",
-    header: "Probabilidad",
+    header: ({ column }) => getHeader(column, "Probabilidad"),
     cell: ({ row }) =>
       h(
         UBadge,
@@ -80,7 +126,7 @@ const columns: TableColumn<StoredDetection>[] = [
   },
   {
     accessorKey: "report_count",
-    header: "Reportes",
+    header: ({ column }) => getHeader(column, "Reportes"),
   },
   {
     accessorKey: "detected_at",
@@ -124,6 +170,8 @@ const pagination = ref({
   pageIndex: 0,
   pageSize: 10,
 });
+
+const sorting = ref([]);
 </script>
 
 <template>
@@ -152,9 +200,10 @@ const pagination = ref({
 
       <UTable
         ref="table"
+        v-model:sorting="sorting"
+        v-model:pagination="pagination"
         :data="detections ?? []"
         :columns="columns"
-        v-model:pagination="pagination"
         :pagination-options="{
           getPaginationRowModel: getPaginationRowModel(),
         }"
@@ -171,7 +220,9 @@ const pagination = ref({
 
       <div class="flex justify-end">
         <UPagination
-          :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+          :default-page="
+            (table?.tableApi?.getState().pagination.pageIndex || 0) + 1
+          "
           :items-per-page="table?.tableApi?.getState().pagination.pageSize"
           :total="table?.tableApi?.getFilteredRowModel().rows.length"
           @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"

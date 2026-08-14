@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useLocalStorage } from "@vueuse/core";
 import type {
   ReportCategory,
   ReportCreate,
@@ -17,27 +16,12 @@ const toast = useToast();
 
 const reports = ref<ReportPublic[]>([]);
 const loadingReports = ref(true);
-const isMock = ref(false);
+const myReport = ref<ReportPublic | null>(null);
 
 const category = ref<ReportCategory>("other");
 const comment = ref("");
 const submitting = ref(false);
 const showForm = ref(false);
-
-// El backend no expone quién hizo cada reporte (GET es público), así que
-// guardamos localmente qué reportó este usuario para poder ofrecer "Editar".
-const myReports = useLocalStorage<Record<string, ReportCreate>>(
-  "alertafuego-my-reports",
-  {},
-);
-
-const myReportKey = computed(() =>
-  user.value ? `${user.value.id}:${props.detection.id}` : null,
-);
-
-const myReport = computed(() =>
-  myReportKey.value ? myReports.value[myReportKey.value] : undefined,
-);
 
 function openForm() {
   if (myReport.value) {
@@ -49,16 +33,34 @@ function openForm() {
 
 async function loadReports() {
   loadingReports.value = true;
-  const result = await fetchReports(props.detection.id);
-  reports.value = result.reports;
-  isMock.value = result.isMock;
-  loadingReports.value = false;
+  try {
+    reports.value = await fetchReports(props.detection.id);
+  } catch {
+    reports.value = [];
+  } finally {
+    loadingReports.value = false;
+  }
 }
 
-onMounted(loadReports);
+async function loadMyReport() {
+  if (!session.value) {
+    myReport.value = null;
+    return;
+  }
+  myReport.value = await fetchMyReport(
+    props.detection.id,
+    session.value.access_token,
+  );
+}
+
+onMounted(() => {
+  loadReports();
+  loadMyReport();
+});
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("es-AR");
+  const utcIso = iso.endsWith("Z") ? iso : `${iso}Z`;
+  return new Date(utcIso).toLocaleString("es-AR", { hour12: false });
 }
 
 async function submitReport() {
@@ -79,15 +81,17 @@ async function submitReport() {
     };
     const isEdit = !!myReport.value;
 
-    if (isEdit) {
-      await updateReport(props.detection.id, payload, session.value.access_token);
-    } else {
-      await createReport(props.detection.id, payload, session.value.access_token);
-    }
-
-    if (myReportKey.value) {
-      myReports.value[myReportKey.value] = payload;
-    }
+    myReport.value = isEdit
+      ? await updateReport(
+          props.detection.id,
+          payload,
+          session.value.access_token,
+        )
+      : await createReport(
+          props.detection.id,
+          payload,
+          session.value.access_token,
+        );
 
     toast.add({
       title: isEdit ? "Reporte actualizado" : "Reporte enviado",
@@ -124,10 +128,6 @@ async function submitReport() {
       </p>
 
       <p v-if="loadingReports" class="text-xs text-muted">Cargando…</p>
-
-      <p v-else-if="isMock" class="text-xs text-warning">
-        Sin conexión con el backend. Mostrando datos de ejemplo.
-      </p>
 
       <ul v-if="!loadingReports && reports.length" class="space-y-1.5">
         <li

@@ -9,7 +9,7 @@ useSeoMeta({
 });
 
 const range = shallowRef<Range>({
-  start: sub(new Date(), { days: 14 }),
+  start: sub(new Date(), { days: 30 }),
   end: new Date(),
 });
 const minConfidence = ref(0);
@@ -20,7 +20,7 @@ const query = computed(() => ({
   until: range.value.end.toISOString(),
 }));
 
-const { data: detections } = useDetections(query);
+const { data: detections, refresh } = useDetections(query);
 
 const filteredDetections = computed(() =>
   (detections.value ?? []).filter(
@@ -52,6 +52,16 @@ function circleColor(probability: number): string {
             v-model:range="range"
             v-model:min-confidence="minConfidence"
             v-model:max-reports="maxReports"
+          />
+        </template>
+
+        <template #right>
+          <UButton
+            color="primary"
+            variant="subtle"
+            icon="i-lucide-refresh-cw"
+            loading-auto
+            @click="refresh()"
           />
         </template>
       </UDashboardToolbar>
@@ -97,6 +107,22 @@ function circleColor(probability: number): string {
 </template>
 
 <style>
+/* @unovis/ts (used by DetectionsChart on the dashboard) bundles its own
+ * stale copy of leaflet.css, which it injects into <head> the moment its
+ * JS is loaded — regardless of whether any unovis map component is ever
+ * rendered. That copy sets `.leaflet-overlay-pane { z-index: 1 }`, versus
+ * our real Leaflet's `z-index: 400`. Same specificity, so whichever rule
+ * loads later wins, permanently dropping the marker pane below the tile
+ * pane for the rest of the SPA session once the dashboard has been
+ * visited. Tiles have `pointer-events: none` in Leaflet's own CSS, so
+ * markers stay clickable through the now-higher tiles while being
+ * completely hidden behind them. Upstream bug, unfixed as of writing:
+ * https://github.com/f5/unovis/issues/554
+ */
+.leaflet-overlay-pane {
+  z-index: 400 !important;
+}
+
 html.dark .leaflet-tile-pane {
   filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
 }
