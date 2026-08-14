@@ -1,75 +1,16 @@
-# Nuxt Minimal Starter
+# AlertaFuego
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## TODO
 
-## Setup
+### Pendiente
 
-Make sure to install dependencies:
+- [ ] Cambiar el nombre de la app de Supabase de "https://viduxyduxzcujpbbfsmw.supabase.co" a AlertaFuego
+- [ ] Landing page
 
-```bash
-# npm
-npm install
+### Terminado
 
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- [x] Conectar con el backend
+- [x] Implementar user logout
+- [x] Editar Leaflet LPopup para contener los reportes de los usuarios y permitir que se pueda generar un nuevo reporte
+- [x] Agregar secrets en Vercel
+- [x] Agregar filtros al mapa
