@@ -9,6 +9,14 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
   signing_protocol                  = "sigv4"
 }
 
+resource "aws_cloudfront_function" "rewrite_index" {
+  name    = "${var.project_name}-rewrite-index"
+  runtime = "cloudfront-js-2.0"
+  comment = "Rewrites extensionless URIs (e.g. /login) to their index.html (login/index.html)"
+  publish = true
+  code    = file("${path.module}/cloudfront-functions/rewrite-index.js")
+}
+
 resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   default_root_object = "index.html"
@@ -28,6 +36,11 @@ resource "aws_cloudfront_distribution" "frontend" {
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
     cache_policy_id        = data.aws_cloudfront_cache_policy.caching_optimized.id
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.rewrite_index.arn
+    }
   }
 
   # This app is built with `nuxi generate`. Routes that can't be fully
