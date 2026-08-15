@@ -79,56 +79,76 @@ resource "aws_iam_role" "github_actions" {
 
 data "aws_iam_policy_document" "github_actions_permissions" {
   statement {
-    sid    = "TerraformState"
+    # Terraform's S3 provider reads a long tail of per-bucket
+    # sub-configurations on every refresh (accelerate config, ACLs, CORS,
+    # lifecycle, logging, versioning, encryption, ownership controls,
+    # etc.), on top of the plain object/bucket CRUD it needs to actually
+    # manage these buckets. Enumerating each one is a whack-a-mole that
+    # breaks CI every time the provider reads one more sub-resource we
+    # didn't list - scoping to just these two projects' buckets (state +
+    # frontend) keeps the blast radius contained without that fragility.
+    sid    = "ManageProjectBuckets"
     effect = "Allow"
     actions = [
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:ListBucket",
+      "s3:*",
     ]
     resources = [
       "arn:aws:s3:::${var.project_name}-tfstate",
       "arn:aws:s3:::${var.project_name}-tfstate/*",
-    ]
-  }
-
-  statement {
-    sid    = "ManageFrontendBucket"
-    effect = "Allow"
-    actions = [
-      "s3:CreateBucket",
-      "s3:DeleteBucket",
-      "s3:ListBucket",
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:DeleteObject",
-      "s3:GetBucket*",
-      "s3:PutBucket*",
-    ]
-    resources = [
       "arn:aws:s3:::${var.project_name}-*",
       "arn:aws:s3:::${var.project_name}-*/*",
     ]
   }
 
   statement {
-    # Most CloudFront write/create actions don't support resource-level
-    # ARNs - AWS only allows "*" for these. Read actions are scoped to
-    # this account by IAM's implicit resource matching regardless.
-    sid    = "ManageCloudFront"
+    # CloudFront doesn't support resource-level ARNs for most actions
+    # (creation, listing, cache/origin-access-control management all
+    # require "*") - scoping the action list instead of the resource is
+    # the only lever available, but the provider's read calls for this
+    # resource type are similarly broad (ListCachePolicies, etc.), so
+    # cloudfront:* here isn't meaningfully wider than the narrower list in
+    # practice, just less fragile.
+    sid       = "ManageCloudFront"
+    effect    = "Allow"
+    actions   = ["cloudfront:*"]
+    resources = ["*"]
+  }
+
+  statement {
+    # This role manages its own IAM role/policy via Terraform - scoped
+    # tightly to resources matching this project's naming convention to
+    # avoid a broader self-service-IAM blast radius.
+    sid    = "ManageOwnRole"
     effect = "Allow"
     actions = [
-      "cloudfront:GetDistribution",
-      "cloudfront:CreateDistribution",
-      "cloudfront:UpdateDistribution",
-      "cloudfront:DeleteDistribution",
-      "cloudfront:TagResource",
-      "cloudfront:ListTagsForResource",
-      "cloudfront:GetOriginAccessControl",
-      "cloudfront:CreateOriginAccessControl",
-      "cloudfront:UpdateOriginAccessControl",
-      "cloudfront:DeleteOriginAccessControl",
-      "cloudfront:CreateInvalidation",
+      "iam:GetRole",
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:TagRole",
+      "iam:UntagRole",
+      "iam:ListRoleTags",
+      "iam:PutRolePolicy",
+      "iam:GetRolePolicy",
+      "iam:DeleteRolePolicy",
+      "iam:ListRolePolicies",
+      "iam:ListAttachedRolePolicies",
+    ]
+    resources = [
+      "arn:aws:iam::*:role/${var.project_name}-*",
+    ]
+  }
+
+  statement {
+    # Read-only lookup of the shared GitHub OIDC provider (github-oidc.tf
+    # references it via data source, never creates/modifies it).
+    # ListOpenIDConnectProviders has no resource-level scoping - it lists
+    # every provider in the account regardless.
+    sid    = "ReadGithubOidcProvider"
+    effect = "Allow"
+    actions = [
+      "iam:ListOpenIDConnectProviders",
+      "iam:GetOpenIDConnectProvider",
     ]
     resources = ["*"]
   }
