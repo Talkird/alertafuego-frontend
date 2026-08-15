@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - "terraform/**"
       - "**.md"
+  workflow_dispatch: # lets you trigger a deploy manually from the Actions tab, regardless of what changed
 
 permissions:
   contents: read
