@@ -49,12 +49,19 @@ data "aws_iam_policy_document" "github_actions_trust" {
     # condition) - it's repo-wide for any PR. The workflow's own trigger
     # filters (branches/paths) narrow *when* this runs; this narrows *who*
     # can assume the role to this repo.
+    #
+    # The wildcards after owner/repo aren't optional: GitHub's actual sub
+    # claim is "repo:{owner}@{ownerId}/{repo}@{repoId}:...", not the plain
+    # "repo:{owner}/{repo}:..." most examples show. Confirmed via CloudTrail
+    # after an exact-match version of this condition rejected every real
+    # token with AccessDenied. Same reason the backend role's condition
+    # uses wildcards too.
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       values = [
-        "repo:${var.github_repository}:pull_request",
-        "repo:${var.github_repository}:ref:refs/heads/main",
+        "repo:${split("/", var.github_repository)[0]}*/${split("/", var.github_repository)[1]}*:pull_request",
+        "repo:${split("/", var.github_repository)[0]}*/${split("/", var.github_repository)[1]}*:ref:refs/heads/main",
       ]
     }
   }
