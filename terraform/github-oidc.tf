@@ -24,8 +24,14 @@ data "aws_iam_openid_connect_provider" "github_actions" {
 
 data "aws_iam_policy_document" "github_actions_trust" {
   statement {
-    effect  = "Allow"
-    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect = "Allow"
+    # aws-actions/configure-aws-credentials tags the assumed session by
+    # default (only skipped if a workflow sets role-skip-session-tagging:
+    # true, which ours don't) - without sts:TagSession allowed here too,
+    # AWS rejects the whole combined call with "Not authorized to perform
+    # sts:AssumeRoleWithWebIdentity", even though that action alone is
+    # allowed.
+    actions = ["sts:AssumeRoleWithWebIdentity", "sts:TagSession"]
 
     principals {
       type        = "Federated"
