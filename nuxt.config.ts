@@ -18,7 +18,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: "http://127.0.0.1:8000",
+      apiBase: "https://rdy7dfklzkxo7u2nrk3va5wb2y0eebcz.lambda-url.us-east-1.on.aws",
     },
   },
 
