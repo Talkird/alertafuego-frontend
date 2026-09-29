@@ -62,6 +62,10 @@ data "aws_iam_policy_document" "github_actions_trust" {
       values = [
         "repo:${split("/", var.github_repository)[0]}*/${split("/", var.github_repository)[1]}*:pull_request",
         "repo:${split("/", var.github_repository)[0]}*/${split("/", var.github_repository)[1]}*:ref:refs/heads/main",
+        # Jobs that declare `environment: production` (deploy-site.yml and the
+        # terraform apply job) get an environment-based sub claim instead of the
+        # ref-based one above, so it must be allowed explicitly.
+        "repo:${split("/", var.github_repository)[0]}*/${split("/", var.github_repository)[1]}*:environment:production",
       ]
     }
   }
