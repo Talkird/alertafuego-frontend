@@ -26,9 +26,5 @@ export default defineNuxtConfig({
     },
   },
 
-  image: {
-    domains: [new URL(apiBase).host],
-  },
-
   css: ["~/assets/css/main.css"],
 });
