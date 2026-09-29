@@ -163,11 +163,10 @@ async function submitReport() {
 
     <UModal v-model:open="showImageModal" title="Imagen satelital">
       <template #body>
-        <NuxtImg
+        <img
           :src="imageUrl"
           alt="Imagen infrarroja de la detección"
           class="w-full rounded"
-          width="512"
         />
       </template>
     </UModal>
