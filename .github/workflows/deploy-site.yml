@@ -28,6 +28,11 @@ jobs:
           node-version: 22
           cache: npm
 
+      # package-lock.json is written by npm 11 locally; the npm 10 bundled with
+      # Node 22 rejects it as out of sync (missing @emnapi/runtime).
+      - name: Use npm 11
+        run: npm install -g npm@11
+
       - name: Install dependencies
         run: npm ci
 
