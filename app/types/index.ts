@@ -22,6 +22,7 @@ export interface StoredDetection {
   bbox: BBox;
   threshold: number;
   report_count: number;
+  has_image: boolean;
 }
 
 export type ReportCategory =
@@ -32,14 +33,18 @@ export type ReportCategory =
   | "sensor_noise"
   | "other";
 
+export type ReportVerdict = "false_positive" | "confirmed_fire";
+
 export interface ReportPublic {
   id: number;
-  category: ReportCategory;
+  verdict: ReportVerdict;
+  category: ReportCategory | null;
   comment: string | null;
   created_at: string;
 }
 
 export interface ReportCreate {
-  category: ReportCategory;
+  verdict: ReportVerdict;
+  category?: ReportCategory | null;
   comment?: string | null;
 }

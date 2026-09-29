@@ -22,7 +22,8 @@ async function signOut() {
 const colorMode = useColorMode();
 
 const displayUser = computed(() => ({
-  name: user.value?.user_metadata?.full_name,
+  name:
+    user.value?.user_metadata?.full_name ?? user.value?.email?.split("@")[0],
   avatar: {
     src: user.value?.user_metadata?.avatar_url || "/icon.png",
     alt: user.value?.email ?? "User avatar",
