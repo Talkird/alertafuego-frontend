@@ -3,6 +3,7 @@ import type {
   ReportCategory,
   ReportCreate,
   ReportPublic,
+  ReportVerdict,
   StoredDetection,
 } from "~/types";
 
@@ -18,15 +19,27 @@ const reports = ref<ReportPublic[]>([]);
 const loadingReports = ref(true);
 const myReport = ref<ReportPublic | null>(null);
 
+const verdict = ref<ReportVerdict>("false_positive");
 const category = ref<ReportCategory>("other");
 const comment = ref("");
 const submitting = ref(false);
 const showForm = ref(false);
+const showImageModal = ref(false);
+
+const config = useRuntimeConfig();
+const imageUrl = computed(
+  () => `${config.public.apiBase}/detections/${props.detection.id}/image`,
+);
 
 function openForm() {
   if (myReport.value) {
-    category.value = myReport.value.category;
+    verdict.value = myReport.value.verdict;
+    category.value = myReport.value.category ?? "other";
     comment.value = myReport.value.comment ?? "";
+  } else {
+    verdict.value = "false_positive";
+    category.value = "other";
+    comment.value = "";
   }
   showForm.value = true;
 }
@@ -58,9 +71,17 @@ onMounted(() => {
   loadMyReport();
 });
 
-function formatDate(iso: string): string {
+function toLocalDate(iso: string): Date {
   const utcIso = iso.endsWith("Z") ? iso : `${iso}Z`;
-  return new Date(utcIso).toLocaleString("es-AR", { hour12: false });
+  return new Date(utcIso);
+}
+
+function formatFecha(iso: string): string {
+  return toLocalDate(iso).toLocaleDateString("es-AR");
+}
+
+function formatHora(iso: string): string {
+  return toLocalDate(iso).toLocaleTimeString("es-AR", { hour12: false });
 }
 
 async function submitReport() {
@@ -76,7 +97,8 @@ async function submitReport() {
   submitting.value = true;
   try {
     const payload: ReportCreate = {
-      category: category.value,
+      verdict: verdict.value,
+      category: verdict.value === "false_positive" ? category.value : null,
       comment: comment.value || null,
     };
     const isEdit = !!myReport.value;
@@ -114,34 +136,64 @@ async function submitReport() {
 <template>
   <div class="min-w-56 space-y-3 p-0.5">
     <div class="flex items-center justify-between gap-3">
-      <span class="text-xs font-medium text-muted uppercase">Probabilidad</span>
+      <span class="text-muted text-xs font-medium uppercase">Probabilidad</span>
       <UBadge variant="subtle">
         {{ (detection.probability * 100).toFixed(1) }}%
       </UBadge>
     </div>
 
-    <p class="text-sm text-highlighted">{{ formatDate(detection.detected_at) }}</p>
+    <p class="text-highlighted text-sm">
+      Fecha: {{ formatFecha(detection.detected_at) }}
+    </p>
+    <p class="text-highlighted text-sm">
+      Hora: {{ formatHora(detection.detected_at) }}
+    </p>
 
-    <div class="border-t border-default pt-2">
-      <p class="mb-1.5 text-xs font-medium text-muted uppercase">
+    <UButton
+      v-if="detection.has_image"
+      size="xs"
+      variant="subtle"
+      color="neutral"
+      icon="i-lucide-image"
+      block
+      @click.stop="showImageModal = true"
+    >
+      Ver imagen
+    </UButton>
+
+    <UModal v-model:open="showImageModal" title="Imagen satelital">
+      <template #body>
+        <NuxtImg
+          :src="imageUrl"
+          alt="Imagen infrarroja de la detección"
+          class="w-full rounded"
+          width="512"
+        />
+      </template>
+    </UModal>
+
+    <div class="border-default border-t pt-2">
+      <p class="text-muted mb-1.5 text-xs font-medium uppercase">
         Reportes ({{ detection.report_count }})
       </p>
 
-      <p v-if="loadingReports" class="text-xs text-muted">Cargando…</p>
+      <p v-if="loadingReports" class="text-muted text-xs">Cargando…</p>
 
       <ul v-if="!loadingReports && reports.length" class="space-y-1.5">
         <li
           v-for="report in reports"
           :key="report.id"
-          class="text-xs text-toned"
+          class="text-toned text-xs"
         >
-          <span class="font-medium text-highlighted">{{
-            REPORT_CATEGORY_LABELS[report.category]
+          <span class="text-highlighted font-medium">{{
+            report.verdict === "confirmed_fire"
+              ? REPORT_VERDICT_LABELS.confirmed_fire
+              : REPORT_CATEGORY_LABELS[report.category!]
           }}</span>
           <span v-if="report.comment"> — {{ report.comment }}</span>
         </li>
       </ul>
-      <p v-else-if="!loadingReports" class="text-xs text-muted">
+      <p v-else-if="!loadingReports" class="text-muted text-xs">
         Sin reportes todavía.
       </p>
     </div>
@@ -155,11 +207,20 @@ async function submitReport() {
       block
       @click.stop="openForm"
     >
-      {{ myReport ? "Editar reporte" : "Reportar falso positivo" }}
+      {{ myReport ? "Editar reporte" : "Reportar" }}
     </UButton>
 
-    <div v-show="showForm" class="space-y-2 border-t border-default pt-2">
+    <div v-show="showForm" class="border-default space-y-2 border-t pt-2">
       <USelect
+        v-model="verdict"
+        :items="REPORT_VERDICT_OPTIONS"
+        size="xs"
+        class="w-full"
+        :ui="{ content: 'min-w-48' }"
+        @click.stop
+      />
+      <USelect
+        v-if="verdict === 'false_positive'"
         v-model="category"
         :items="REPORT_CATEGORY_OPTIONS"
         size="xs"
@@ -171,6 +232,7 @@ async function submitReport() {
         v-model="comment"
         size="xs"
         placeholder="Comentario (opcional)"
+        autoresize
         class="w-full"
         @click.stop
       />

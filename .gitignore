@@ -22,3 +22,13 @@ logs
 .env
 .env.*
 !.env.example
+
+# Terraform (recursive: also covers terraform/bootstrap/, whose state is
+# intentionally local — it's what bootstraps the main config's remote backend)
+terraform/**/.terraform/
+terraform/**/*.tfstate
+terraform/**/*.tfstate.*
+terraform/**/*.tfvars
+terraform/**/*.tfvars.json
+terraform/**/crash.log
+terraform/**/crash.*.log
