@@ -9,7 +9,7 @@ watch(
   user,
   () => {
     if (user.value) {
-      return navigateTo("/");
+      return navigateTo("/mapa");
     }
   },
   { immediate: true },

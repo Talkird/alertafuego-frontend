@@ -7,7 +7,7 @@ const links = [
   {
     label: "Mapa",
     icon: "i-lucide-map",
-    to: "/",
+    to: "/mapa",
     onSelect: () => {
       open.value = false;
     },

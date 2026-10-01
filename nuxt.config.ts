@@ -20,6 +20,14 @@ export default defineNuxtConfig({
     name: "AlertaFuego",
   },
 
+  supabase: {
+    redirectOptions: {
+      login: "/login",
+      callback: "/confirm",
+      exclude: ["/"],
+    },
+  },
+
   runtimeConfig: {
     public: {
       apiBase,
