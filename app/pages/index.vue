@@ -173,6 +173,10 @@ const metrics = [
         description="Ingrese con su cuenta de Google o mediante un enlace de acceso único para acceder al mapa y al panel de estadísticas."
         :links="[{ label: 'Comenzar gratis', to: '/mapa', size: 'xl' }]"
         variant="naked"
+        :ui="{
+          title: 'mx-auto max-w-xl text-balance',
+          description: 'mx-auto max-w-xl text-balance',
+        }"
       />
     </UPageSection>
   </div>
