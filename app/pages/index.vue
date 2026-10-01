@@ -160,6 +160,7 @@ const metrics = [
           :description="metric.label"
           variant="subtle"
           :ui="{
+            root: 'hover:bg-elevated hover:ring-accented transition duration-200 motion-safe:hover:-translate-y-0.5',
             wrapper: 'items-center text-center',
             title: 'text-primary text-3xl font-bold',
           }"
