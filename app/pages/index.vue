@@ -113,16 +113,6 @@ const metrics = [
         />
       </template>
 
-      <template #headline>
-        <UBadge
-          label="Proyecto Final de Ingeniería · UADE"
-          color="neutral"
-          variant="subtle"
-          icon="i-lucide-graduation-cap"
-          class="rounded-full"
-        />
-      </template>
-
       <template #title>
         Detección temprana de incendios
         <span class="text-primary">en Argentina</span>
@@ -179,10 +169,10 @@ const metrics = [
 
     <UPageSection>
       <UPageCTA
-        title="Consulte los focos activos en el país"
-        description="Ingrese con su cuenta de Google o mediante un enlace de acceso enviado a su correo electrónico para acceder al mapa y al panel de estadísticas."
-        :links="[{ label: 'Ingresar al mapa', to: '/mapa', size: 'xl' }]"
-        variant="subtle"
+        title="¿Quiere saber dónde hay focos activos en el país?"
+        description="Ingrese con su cuenta de Google o mediante un enlace de acceso único para acceder al mapa y al panel de estadísticas."
+        :links="[{ label: 'Comenzar gratis', to: '/mapa', size: 'xl' }]"
+        variant="naked"
       />
     </UPageSection>
   </div>

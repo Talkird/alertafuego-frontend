@@ -11,7 +11,7 @@ const items = [
 const access = computed(() =>
   user.value
     ? { label: "Ir al mapa", to: "/mapa", icon: "i-lucide-map" }
-    : { label: "Iniciar sesión", to: "/login", icon: "i-lucide-log-in" },
+    : { label: "Iniciar sesión", to: "/login" },
 );
 
 const footerLinks = [
