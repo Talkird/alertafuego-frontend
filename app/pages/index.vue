@@ -109,7 +109,7 @@ const metrics = [
     >
       <template #top>
         <div
-          class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-2/3 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklch,var(--ui-primary)_15%,transparent),transparent_70%)]"
+          class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-64 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklch,var(--ui-primary)_15%,transparent),transparent_70%)]"
         />
       </template>
 
