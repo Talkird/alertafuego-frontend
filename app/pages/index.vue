@@ -62,7 +62,7 @@ const features = [
     icon: "i-lucide-chart-column",
     title: "Panel de estadísticas",
     description:
-      "La evolución de las detecciones puede consultarse por día, semana o mes, junto con el detalle de cada registro.",
+      "La evolución de las detecciones puede consultarse por día, semana, mes o año, junto con el detalle de cada registro.",
   },
 ];
 
@@ -83,13 +83,13 @@ const steps: TimelineItem[] = [
     title: "Registro",
     icon: "i-lucide-database",
     description:
-      "Las detecciones dentro del territorio argentino se almacenan con su ubicación, probabilidad y hora de captura.",
+      "Las detecciones dentro del territorio argentino se almacenan con su ubicación, probabilidad, hora de captura y una imagen de la banda infrarroja de 3,9 µm.",
   },
   {
     title: "Validación",
     icon: "i-lucide-badge-check",
     description:
-      "Cada detección se publica en el mapa, donde los usuarios pueden confirmarla o descartarla mediante reportes.",
+      "Cada detección se publica en el mapa, donde los usuarios pueden confirmarla o señalarla como falso positivo mediante reportes.",
   },
 ];
 
@@ -140,7 +140,7 @@ const metrics = [
       id="como-funciona"
       headline="Cómo funciona"
       title="Del satélite al mapa"
-      description="Cada imagen atraviesa un circuito automático de captura, análisis y registro antes de llegar a los usuarios, quienes aportan la validación final desde el terreno."
+      description="Cada análisis toma la imagen más reciente del GOES-19 y la procesa en etapas de captura, análisis y registro antes de llegar a los usuarios, quienes aportan la validación final mediante sus reportes."
       orientation="horizontal"
       class="scroll-mt-(--ui-header-height)"
     >
