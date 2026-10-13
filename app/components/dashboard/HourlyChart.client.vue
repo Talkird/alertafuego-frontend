@@ -10,7 +10,14 @@ import type { HourStat } from "~/types";
 
 const props = defineProps<{
   hours: HourStat[];
+  loading?: boolean;
 }>();
+
+// One placeholder bar per hour, fixed heights so it looks the same each load.
+const SKELETON_BARS = [
+  14, 10, 8, 8, 10, 16, 24, 34, 46, 58, 70, 82, 92, 96, 88, 76, 62, 50, 40, 32,
+  26, 22, 18, 16,
+];
 
 const x = (d: HourStat) => d.hour;
 const y = (d: HourStat) => d.detection_count;
@@ -39,7 +46,11 @@ const tooltip = ({ datum: d }: { datum: HourStat }) =>
         <p class="text-muted mb-1 text-sm">
           Focos por hora del día, hora argentina
         </p>
-        <p class="text-highlighted text-lg font-semibold">
+        <USkeleton v-if="loading" aria-hidden="true" class="h-7 w-52" />
+        <p v-if="loading" class="sr-only" aria-live="polite">
+          Cargando focos por hora…
+        </p>
+        <p v-else class="text-highlighted text-lg font-semibold">
           <template v-if="busiest">
             Hora con más focos: {{ pad(busiest.hour) }} h
           </template>
@@ -48,7 +59,21 @@ const tooltip = ({ datum: d }: { datum: HourStat }) =>
       </div>
     </template>
 
-    <VisXYContainer :data="hours" class="h-56">
+    <div v-if="loading" aria-hidden="true" class="flex h-56 flex-col pt-4">
+      <div class="border-default flex flex-1 items-end gap-1.5 border-b">
+        <USkeleton
+          v-for="(height, i) in SKELETON_BARS"
+          :key="i"
+          class="flex-1 rounded-b-none"
+          :style="{ height: `${height}%` }"
+        />
+      </div>
+      <div class="flex justify-between pt-3">
+        <USkeleton v-for="i in 8" :key="i" class="h-3 w-8" />
+      </div>
+    </div>
+
+    <VisXYContainer v-else :data="hours" class="h-56">
       <VisStackedBar
         :x="x"
         :y="y"

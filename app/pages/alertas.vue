@@ -641,8 +641,8 @@ function showAlert(alert: Alert) {
                 <UButton
                   size="sm"
                   color="neutral"
-                  variant="link"
-                  class="-me-2 -mt-1"
+                  variant="subtle"
+                  class="shrink-0"
                   @click="cancelDraft"
                 >
                   Cancelar
@@ -680,7 +680,7 @@ function showAlert(alert: Alert) {
           <div class="flex w-full justify-end gap-2">
             <UButton
               color="neutral"
-              variant="ghost"
+              variant="subtle"
               @click="areaToDelete = null"
             >
               Cancelar

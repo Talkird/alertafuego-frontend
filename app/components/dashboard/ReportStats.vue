@@ -3,7 +3,7 @@ import type { ReportCategory } from "~/types";
 
 const { query } = storeToRefs(useFiltersStore());
 
-const { data: stats, error } = useReportStats(query);
+const { data: stats, status, error } = useReportStats(query);
 useFetchErrorToast(error, "No se pudieron cargar las estadísticas");
 
 const confirmed = computed(() =>
@@ -40,7 +40,30 @@ const maxCategory = computed(() => categories.value[0]?.count ?? 1);
       <p class="text-highlighted text-sm font-medium">Reportes de usuarios</p>
     </template>
 
-    <p v-if="!total" class="text-muted text-sm">
+    <!-- It showed "Sin reportes" while loading: it never checked the status. -->
+    <div v-if="status === 'pending'">
+      <p class="sr-only" aria-live="polite">Cargando reportes…</p>
+      <div aria-hidden="true" class="space-y-5">
+        <div class="grid grid-cols-3 gap-3">
+          <div v-for="i in 3" :key="i" class="space-y-2">
+            <USkeleton class="h-4 w-20" />
+            <USkeleton class="h-7 w-10" />
+          </div>
+        </div>
+        <div class="space-y-2.5">
+          <USkeleton class="h-4 w-40" />
+          <div v-for="width in [100, 66, 40]" :key="width" class="space-y-1">
+            <div class="flex items-center justify-between gap-3 py-0.5">
+              <USkeleton class="h-4 w-28" />
+              <USkeleton class="h-4 w-6" />
+            </div>
+            <USkeleton class="h-2" :style="{ width: `${width}%` }" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p v-else-if="!total" class="text-muted text-sm">
       Sin reportes en este período.
     </p>
 

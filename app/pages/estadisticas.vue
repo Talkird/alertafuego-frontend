@@ -27,7 +27,11 @@ const {
 } = useDetections(
   computed(() => ({ ...query.value, limit: DETECTIONS_LIMIT })),
 );
-const { data: hours, error: hoursError } = useHourlyStats(query);
+const {
+  data: hours,
+  status: hoursStatus,
+  error: hoursError,
+} = useHourlyStats(query);
 useFetchErrorToast(
   computed(() => detectionsError.value ?? hoursError.value),
   "No se pudieron cargar las estadísticas",
@@ -239,7 +243,10 @@ const sorting = ref([]);
         :loading="detectionsStatus === 'pending'"
       />
 
-      <DashboardHourlyChart :hours="hours ?? []" />
+      <DashboardHourlyChart
+        :hours="hours ?? []"
+        :loading="hoursStatus === 'pending'"
+      />
 
       <div class="grid shrink-0 gap-4 lg:grid-cols-2">
         <DashboardRegionStats />
@@ -252,6 +259,7 @@ const sorting = ref([]);
         v-model:pagination="pagination"
         :data="detections ?? []"
         :columns="columns"
+        :loading="detectionsStatus === 'pending'"
         :pagination-options="{
           getPaginationRowModel: getPaginationRowModel(),
         }"
@@ -263,8 +271,31 @@ const sorting = ref([]);
           th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
           td: 'border-b border-default',
           separator: 'h-0',
+          loading: 'p-0',
         }"
-      />
+      >
+        <!-- One page of placeholder rows at the real row height (65px), so the
+             table doesn't grow from an empty "no data" row and push the page
+             down when the detections arrive. -->
+        <template #loading>
+          <p class="sr-only" aria-live="polite">Cargando detecciones…</p>
+          <div aria-hidden="true" class="divide-default divide-y">
+            <div
+              v-for="i in pagination.pageSize"
+              :key="i"
+              class="flex h-[65px] items-center gap-6 px-4"
+            >
+              <USkeleton class="h-4 w-8" />
+              <USkeleton class="h-4 w-36" />
+              <USkeleton class="h-5 w-14 rounded-full" />
+              <USkeleton class="h-4 w-6" />
+              <USkeleton class="h-4 w-36" />
+              <USkeleton class="h-4 w-36" />
+              <USkeleton class="ms-auto h-4 w-4" />
+            </div>
+          </div>
+        </template>
+      </UTable>
 
       <div class="flex justify-end">
         <UPagination

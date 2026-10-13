@@ -31,7 +31,7 @@ const fields: AuthFormField[] = [
 const providers = [
   {
     label: "Continuar con Google",
-    icon: "i-simple-icons-google",
+    icon: "i-logos-google-icon",
     onClick: async () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",

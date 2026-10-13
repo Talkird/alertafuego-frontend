@@ -103,7 +103,7 @@ const canSave = computed(
     </UFormField>
 
     <div class="flex gap-2">
-      <UButton color="neutral" variant="ghost" block @click="emit('cancel')">
+      <UButton color="neutral" variant="subtle" block @click="emit('cancel')">
         Cancelar
       </UButton>
       <UButton type="submit" block :loading="saving" :disabled="!canSave">
