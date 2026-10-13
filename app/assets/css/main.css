@@ -20,14 +20,21 @@
  * pane for the rest of the SPA session once the dashboard has been
  * visited. Tiles have `pointer-events: none` in Leaflet's own CSS, so
  * markers stay clickable through the now-higher tiles while being
- * completely hidden behind them. Upstream bug, unfixed as of writing:
- * https://github.com/f5/unovis/issues/554
+ * completely hidden behind them. The same copy also sets the control
+ * corners (`.leaflet-top, .leaflet-bottom`) to `z-index: 1`, hiding the zoom
+ * control and attribution behind the tiles the same way. Upstream bug,
+ * unfixed as of writing: https://github.com/f5/unovis/issues/554
  */
 .leaflet-overlay-pane {
   z-index: 400 !important;
 }
 
-html.dark .leaflet-tile-pane {
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1000 !important;
+}
+
+html.dark .af-tiles-ign {
   filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
 }
 
@@ -70,7 +77,7 @@ html.dark .leaflet-tile-pane {
 }
 
 .leaflet-container .leaflet-control-attribution {
-  background: color-mix(in oklab, var(--ui-bg) 85%, transparent);
+  background: color-mix(in oklab, var(--ui-bg) 85%, transparent) !important;
   color: var(--ui-text-muted);
 }
 

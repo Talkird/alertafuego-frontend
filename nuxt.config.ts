@@ -31,6 +31,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase,
+      // Optional: enables the weather layers on the maps. Set with
+      // NUXT_PUBLIC_OWM_API_KEY (free key from openweathermap.org).
+      owmApiKey: "",
     },
   },
 

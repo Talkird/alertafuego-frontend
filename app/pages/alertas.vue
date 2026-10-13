@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { LeafletMouseEvent, Map as LeafletMap } from "leaflet";
+import type { BaseLayer, WeatherLayer } from "~/utils/mapLayers";
 import type { Alert, AlertArea, AreaDraft, StoredDetection } from "~/types";
 
 useSeoMeta({
@@ -27,6 +28,8 @@ const deleting = ref(false);
 const center = ref<[number, number]>([-38.4161, -63.6167]);
 const zoom = ref(4);
 let map: LeafletMap | null = null;
+const baseLayer = ref<BaseLayer>("map");
+const weatherLayer = ref<WeatherLayer | null>(null);
 
 // Zones store the address alerts are sent to; the session's is the fallback
 // before any zone exists.
@@ -437,13 +440,7 @@ function formatDateTime(iso: string): string {
             @ready="onMapReady"
             @click="onMapClick"
           >
-            <LTileLayer
-              url="https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png"
-              attribution='&amp;copy; <a href="https://www.ign.gob.ar/">Instituto Geográfico Nacional</a>'
-              layer-type="base"
-              name="Argenmap (IGN)"
-              no-wrap
-            />
+            <MapTileLayers :base="baseLayer" :weather="weatherLayer" />
 
             <LCircle
               v-for="area in areas"
@@ -477,10 +474,18 @@ function formatDateTime(iso: string): string {
             />
           </LMap>
 
-          <MapLegend
-            v-if="alertedDetections.length"
-            class="absolute bottom-6 left-3 z-[1000]"
+          <MapLayerPicker
+            v-model:base="baseLayer"
+            v-model:weather="weatherLayer"
+            class="absolute top-3 right-3 z-[1000]"
           />
+
+          <div
+            class="pointer-events-none absolute bottom-6 left-3 z-[1000] flex flex-col items-start gap-2"
+          >
+            <MapWeatherLegend v-if="weatherLayer" :layer="weatherLayer" />
+            <MapLegend v-if="alertedDetections.length" />
+          </div>
         </div>
       </div>
 

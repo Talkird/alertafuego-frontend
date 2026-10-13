@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { BaseLayer, WeatherLayer } from "~/utils/mapLayers";
+
 useSeoMeta({
   title: "Mapa",
   description:
@@ -8,6 +10,8 @@ useSeoMeta({
 const { range } = storeToRefs(useFiltersStore());
 const minConfidence = ref(0);
 const maxReports = ref(20);
+const baseLayer = ref<BaseLayer>("map");
+const weatherLayer = ref<WeatherLayer | null>(null);
 
 const query = computed(() => ({
   since: range.value.start.toISOString(),
@@ -85,13 +89,7 @@ const countLabel = computed(() => {
           :max-bounds-viscosity="1.0"
           :use-global-leaflet="false"
         >
-          <LTileLayer
-            url="https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png"
-            attribution='&amp;copy; <a href="https://www.ign.gob.ar/">Instituto Geográfico Nacional</a>'
-            layer-type="base"
-            name="Argenmap (IGN)"
-            no-wrap
-          />
+          <MapTileLayers :base="baseLayer" :weather="weatherLayer" />
 
           <MapDetectionMarker
             v-for="detection in filteredDetections"
@@ -111,7 +109,18 @@ const countLabel = computed(() => {
           }}
         </p>
 
-        <MapLegend class="absolute bottom-6 left-3 z-[1000]" />
+        <MapLayerPicker
+          v-model:base="baseLayer"
+          v-model:weather="weatherLayer"
+          class="absolute top-3 right-3 z-[1000]"
+        />
+
+        <div
+          class="pointer-events-none absolute bottom-6 left-3 z-[1000] flex flex-col items-start gap-2"
+        >
+          <MapWeatherLegend v-if="weatherLayer" :layer="weatherLayer" />
+          <MapLegend />
+        </div>
       </div>
     </template>
   </UDashboardPanel>

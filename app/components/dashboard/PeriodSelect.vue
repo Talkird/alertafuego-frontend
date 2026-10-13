@@ -20,7 +20,7 @@ const days = computed(() => eachDayOfInterval(props.range));
 const periods = computed<Period[]>(() => {
   if (days.value.length <= 8) return ["daily"];
   if (days.value.length <= 31) return ["daily", "weekly"];
-  if (days.value.length <= 366) return ["weekly", "monthly"];
+  if (days.value.length <= 366) return ["daily", "weekly", "monthly"];
   return ["monthly", "yearly"];
 });
 
@@ -28,12 +28,18 @@ const items = computed(() =>
   periods.value.map((value) => ({ label: labels[value], value })),
 );
 
-// Ensure the model value is always a valid period
-watch(periods, () => {
-  if (!periods.value.includes(model.value)) {
-    model.value = periods.value[0]!;
-  }
-});
+// Ensure the model value is always a valid period. Immediate: the range comes
+// from the shared store, so the page can open on a range the default period
+// isn't offered for (the select then showed the raw value, "daily").
+watch(
+  periods,
+  () => {
+    if (!periods.value.includes(model.value)) {
+      model.value = periods.value[0]!;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
