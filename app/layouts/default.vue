@@ -20,6 +20,14 @@ const links = [
       open.value = false;
     },
   },
+  {
+    label: "Alertas",
+    icon: "i-lucide-bell",
+    to: "/alertas",
+    onSelect: () => {
+      open.value = false;
+    },
+  },
 ] satisfies NavigationMenuItem[];
 
 const groups = computed(() => [

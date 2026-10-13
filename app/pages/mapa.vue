@@ -29,12 +29,6 @@ const filteredDetections = computed(() =>
       detection.report_count <= maxReports.value,
   ),
 );
-
-function circleColor(probability: number): string {
-  if (probability >= 0.8) return "#dc2626";
-  if (probability >= 0.65) return "#f97316";
-  return "#facc15";
-}
 </script>
 
 <template>
@@ -93,8 +87,8 @@ function circleColor(probability: number): string {
           :key="detection.id"
           :lat-lng="[detection.lat, detection.lon]"
           :radius="6"
-          :color="circleColor(detection.probability)"
-          :fill-color="circleColor(detection.probability)"
+          :color="detectionColor(detection.probability)"
+          :fill-color="detectionColor(detection.probability)"
           :fill-opacity="0.7"
         >
           <LPopup :options="{ className: 'af-popup', closeButton: false }">
@@ -105,45 +99,3 @@ function circleColor(probability: number): string {
     </template>
   </UDashboardPanel>
 </template>
-
-<style>
-/* @unovis/ts (used by DetectionsChart on the dashboard) bundles its own
- * stale copy of leaflet.css, which it injects into <head> the moment its
- * JS is loaded — regardless of whether any unovis map component is ever
- * rendered. That copy sets `.leaflet-overlay-pane { z-index: 1 }`, versus
- * our real Leaflet's `z-index: 400`. Same specificity, so whichever rule
- * loads later wins, permanently dropping the marker pane below the tile
- * pane for the rest of the SPA session once the dashboard has been
- * visited. Tiles have `pointer-events: none` in Leaflet's own CSS, so
- * markers stay clickable through the now-higher tiles while being
- * completely hidden behind them. Upstream bug, unfixed as of writing:
- * https://github.com/f5/unovis/issues/554
- */
-.leaflet-overlay-pane {
-  z-index: 400 !important;
-}
-
-html.dark .leaflet-tile-pane {
-  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
-}
-
-.af-popup .leaflet-popup-content-wrapper {
-  background: var(--ui-bg);
-  color: var(--ui-text);
-  border-radius: calc(var(--ui-radius) * 2);
-  box-shadow:
-    0 10px 15px -3px rgb(0 0 0 / 0.1),
-    0 4px 6px -4px rgb(0 0 0 / 0.1);
-  border: 1px solid var(--ui-border);
-}
-
-.af-popup .leaflet-popup-content {
-  margin: 0.75rem 1rem;
-}
-
-.af-popup .leaflet-popup-tip {
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-border);
-  box-shadow: none;
-}
-</style>
