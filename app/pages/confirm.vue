@@ -5,10 +5,13 @@ definePageMeta({
   layout: "auth",
 });
 
+const toast = useToast();
+
 watch(
   user,
   () => {
     if (user.value) {
+      toast.add({ title: "Sesión iniciada", color: "success" });
       return navigateTo("/mapa");
     }
   },

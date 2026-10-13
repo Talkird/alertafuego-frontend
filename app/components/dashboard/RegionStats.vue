@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import type { Range, RegionKind } from "~/types";
-
-const props = defineProps<{
-  range: Range;
-}>();
+import type { RegionKind } from "~/types";
 
 const TOP = 10;
 
@@ -13,13 +9,11 @@ const kindOptions = [
   { label: "Departamentos", value: "department" },
 ];
 
-const query = computed(() => ({
-  kind: kind.value,
-  since: props.range.start.toISOString(),
-  until: props.range.end.toISOString(),
-}));
+const { query: rangeQuery } = storeToRefs(useFiltersStore());
+const query = computed(() => ({ kind: kind.value, ...rangeQuery.value }));
 
-const { data: regions, status } = useRegionStats(query);
+const { data: regions, status, error } = useRegionStats(query);
+useFetchErrorToast(error, "No se pudieron cargar las estadísticas");
 
 const top = computed(() => (regions.value ?? []).slice(0, TOP));
 const max = computed(() => top.value[0]?.detection_count ?? 1);

@@ -5,7 +5,7 @@ import { getPaginationRowModel } from "@tanstack/table-core";
 import type { StoredDetection, Period } from "~/types";
 
 useSeoMeta({
-  title: "Dashboard",
+  title: "Estadísticas",
   description:
     "Estadísticas históricas de focos de incendio detectados en Argentina, filtrables por fecha y período.",
 });
@@ -14,20 +14,19 @@ const UBadge = resolveComponent("UBadge");
 const UButton = resolveComponent("UButton");
 const UDropdownMenu = resolveComponent("UDropdownMenu");
 
-const { range } = storeToRefs(useFiltersStore());
+const { range, query } = storeToRefs(useFiltersStore());
 const period = ref<Period>("daily");
-
-const query = computed(() => ({
-  since: range.value.start.toISOString(),
-  until: range.value.end.toISOString(),
-}));
 
 // The total and the daily chart count these rows, so ask for the API's maximum
 // rather than the default 500.
-const { data: detections } = useDetections(
+const { data: detections, error: detectionsError } = useDetections(
   computed(() => ({ ...query.value, limit: 5000 })),
 );
-const { data: hours } = useHourlyStats(query);
+const { data: hours, error: hoursError } = useHourlyStats(query);
+useFetchErrorToast(
+  computed(() => detectionsError.value ?? hoursError.value),
+  "No se pudieron cargar las estadísticas",
+);
 
 const route = useRoute();
 
@@ -195,7 +194,7 @@ const sorting = ref([]);
 <template>
   <UDashboardPanel id="dashboard">
     <template #header>
-      <UDashboardNavbar title="Dashboard">
+      <UDashboardNavbar title="Estadísticas">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
@@ -232,8 +231,8 @@ const sorting = ref([]);
       <DashboardHourlyChart :hours="hours ?? []" />
 
       <div class="grid shrink-0 gap-4 lg:grid-cols-2">
-        <DashboardRegionStats :range="range" />
-        <DashboardReportStats :range="range" />
+        <DashboardRegionStats />
+        <DashboardReportStats />
       </div>
 
       <UTable

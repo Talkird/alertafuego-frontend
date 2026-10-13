@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useDocumentVisibility, useIntervalFn } from "@vueuse/core";
 import type { BaseLayer, WeatherLayer } from "~/utils/mapLayers";
 
 useSeoMeta({
@@ -7,7 +8,8 @@ useSeoMeta({
     "Mapa en tiempo casi real de focos de incendio detectados en Argentina mediante imágenes satelitales GOES-19.",
 });
 
-const { range } = storeToRefs(useFiltersStore());
+const { range, query: rangeQuery } = storeToRefs(useFiltersStore());
+const toast = useToast();
 const minConfidence = ref(0);
 const maxReports = ref(20);
 const baseLayer = ref<BaseLayer>("map");
@@ -16,15 +18,54 @@ const baseLayer = ref<BaseLayer>("map");
 const INITIAL_CENTER: [number, number] = [-38.4161, -63.6167];
 const weatherLayer = ref<WeatherLayer | null>(null);
 
-const query = computed(() => ({
-  since: range.value.start.toISOString(),
-  until: range.value.end.toISOString(),
-  // The API's maximum. The default (500) silently dropped detections on
-  // longer ranges.
-  limit: 5000,
-}));
+// The API's maximum. The default (500) silently dropped detections on longer
+// ranges.
+const query = computed(() => ({ ...rangeQuery.value, limit: 5000 }));
 
-const { data: detections, status, refresh } = useDetections(query);
+const { data: detections, status, error, refresh } = useDetections(query);
+useFetchErrorToast(error, "No se pudieron cargar los focos");
+
+const lastUpdated = ref<Date | null>(null);
+watch(
+  status,
+  (value) => {
+    if (value === "success") lastUpdated.value = new Date();
+  },
+  { immediate: true },
+);
+
+/** Refetch, and say so when it brought detections the map didn't have. */
+async function refreshAndNotify() {
+  const known = new Set((detections.value ?? []).map((d) => d.id));
+  await refresh();
+  const added = (detections.value ?? []).filter((d) => !known.has(d.id)).length;
+  if (added) {
+    toast.add({
+      title: added === 1 ? "1 foco nuevo" : `${added} focos nuevos`,
+      description: "El mapa se actualizó con las últimas detecciones.",
+      icon: "i-lucide-flame",
+      color: "warning",
+    });
+  }
+}
+
+// Near real time: refetch every 5 minutes while the tab is visible, and right
+// away when coming back to a tab left open longer than that.
+const AUTO_REFRESH_MS = 5 * 60 * 1000;
+const { pause, resume } = useIntervalFn(refreshAndNotify, AUTO_REFRESH_MS);
+const visibility = useDocumentVisibility();
+watch(visibility, (value) => {
+  if (value !== "visible") return pause();
+  const age = Date.now() - (lastUpdated.value?.getTime() ?? 0);
+  if (age > AUTO_REFRESH_MS) refreshAndNotify();
+  resume();
+});
+
+const updatedLabel = computed(() =>
+  lastUpdated.value
+    ? `actualizado ${lastUpdated.value.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false })}`
+    : "",
+);
 
 const filteredDetections = computed(() =>
   (detections.value ?? []).filter(
@@ -63,6 +104,7 @@ const countLabel = computed(() => {
         <template #right>
           <span class="text-muted hidden text-sm tabular-nums sm:inline">
             {{ countLabel }}
+            <template v-if="updatedLabel"> · {{ updatedLabel }}</template>
           </span>
           <UTooltip text="Actualizar">
             <UButton
@@ -71,7 +113,7 @@ const countLabel = computed(() => {
               icon="i-lucide-refresh-cw"
               aria-label="Actualizar"
               loading-auto
-              @click="refresh()"
+              @click="refreshAndNotify()"
             />
           </UTooltip>
         </template>

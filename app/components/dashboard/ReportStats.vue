@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import type { Range, ReportCategory } from "~/types";
+import type { ReportCategory } from "~/types";
 
-const props = defineProps<{
-  range: Range;
-}>();
+const { query } = storeToRefs(useFiltersStore());
 
-const query = computed(() => ({
-  since: props.range.start.toISOString(),
-  until: props.range.end.toISOString(),
-}));
-
-const { data: stats } = useReportStats(query);
+const { data: stats, error } = useReportStats(query);
+useFetchErrorToast(error, "No se pudieron cargar las estadísticas");
 
 const confirmed = computed(() =>
   (stats.value ?? [])

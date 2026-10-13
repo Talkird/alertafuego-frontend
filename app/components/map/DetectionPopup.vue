@@ -44,6 +44,12 @@ function openForm() {
   showForm.value = true;
 }
 
+// The loaded list, once there is one: detection.report_count is from when the
+// map loaded, so it stayed at 0 after the user's own report.
+const reportCount = computed(() =>
+  loadingReports.value ? props.detection.report_count : reports.value.length,
+);
+
 async function loadReports() {
   loadingReports.value = true;
   try {
@@ -188,7 +194,7 @@ async function submitReport() {
 
     <div class="border-default border-t pt-2">
       <p class="text-highlighted mb-1.5 text-sm font-medium">
-        Reportes ({{ detection.report_count }})
+        Reportes ({{ reportCount }})
       </p>
 
       <p v-if="loadingReports" class="text-muted text-xs">Cargando…</p>

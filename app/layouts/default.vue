@@ -13,9 +13,9 @@ const links = [
     },
   },
   {
-    label: "Dashboard",
+    label: "Estadísticas",
     icon: "i-lucide-chart-column",
-    to: "/dashboard",
+    to: "/estadisticas",
     onSelect: () => {
       open.value = false;
     },

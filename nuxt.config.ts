@@ -46,7 +46,9 @@ export default defineNuxtConfig({
   // redirect check runs in the browser, where the session cookie is.
   routeRules: {
     "/mapa": { ssr: false },
-    "/dashboard": { ssr: false },
+    "/estadisticas": { ssr: false },
+    // Old name of the statistics page.
+    "/dashboard": { redirect: "/estadisticas" },
     "/alertas": { ssr: false },
   },
 });

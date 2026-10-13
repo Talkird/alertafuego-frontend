@@ -1,5 +1,10 @@
 <script lang="ts" setup>
-import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
+import {
+  createReusableTemplate,
+  useDocumentVisibility,
+  useIntervalFn,
+  useMediaQuery,
+} from "@vueuse/core";
 import type { LeafletMouseEvent, Map as LeafletMap } from "leaflet";
 import type { BaseLayer, WeatherLayer } from "~/utils/mapLayers";
 import type {
@@ -123,6 +128,55 @@ async function load() {
 onMounted(async () => {
   await load();
   fitAreas();
+});
+
+// New alerts arrive while the page is open (each detection run raises them):
+// check every minute while the tab is visible, and right away when coming back.
+const ALERTS_POLL_MS = 60 * 1000;
+
+async function pollAlerts() {
+  if (!session.value || loading.value) return;
+  try {
+    const latest = await fetchAlerts(token());
+    const known = new Set(alerts.value.map((a) => a.id));
+    const fresh = latest.filter((a) => !known.has(a.id));
+    alerts.value = latest;
+    const first = fresh[0];
+    if (!first) return;
+    toast.add({
+      title:
+        fresh.length === 1
+          ? `Nuevo foco en «${first.area_name}»`
+          : `${fresh.length} focos nuevos en tus zonas`,
+      description: "Tocá Ver para ver la imagen satelital o reportarlo.",
+      icon: "i-lucide-flame",
+      color: "warning",
+      // A new fire in the user's zone: longer than the default 5 s.
+      duration: 20000,
+      actions: [
+        {
+          label: "Ver",
+          onClick: () => {
+            tab.value = "alerts";
+            showAlert(first);
+          },
+        },
+      ],
+    });
+  } catch {
+    // Silent: the page keeps what it has, and the next poll retries.
+  }
+}
+
+const { pause: pausePolling, resume: resumePolling } = useIntervalFn(
+  pollAlerts,
+  ALERTS_POLL_MS,
+);
+const visibility = useDocumentVisibility();
+watch(visibility, (value) => {
+  if (value !== "visible") return pausePolling();
+  pollAlerts();
+  resumePolling();
 });
 
 function onMapReady(leafletMap: LeafletMap) {
@@ -322,6 +376,20 @@ async function setActive(area: AlertArea, active: boolean) {
   try {
     const updated = await updateAlertArea(area.id, { active }, token());
     areas.value = areas.value.map((a) => (a.id === updated.id ? updated : a));
+    // Pausing is easy to forget and silently stops the emails: say what it does.
+    toast.add(
+      active
+        ? {
+            title: "Avisos reanudados",
+            description: `Te vamos a avisar de nuevo por focos en «${area.name}».`,
+            color: "success",
+          }
+        : {
+            title: "Avisos pausados",
+            description: `No vas a recibir emails por «${area.name}» hasta que la reactives.`,
+            color: "neutral",
+          },
+    );
   } catch {
     toast.add({ title: "No se pudo actualizar la zona", color: "error" });
   }
@@ -340,6 +408,7 @@ async function confirmDelete() {
     if (draft.value?.id === area.id) draft.value = null;
     if (selectedAreaId.value === area.id) selectedAreaId.value = null;
     areaToDelete.value = null;
+    toast.add({ title: `Zona «${area.name}» eliminada`, color: "success" });
   } catch {
     toast.add({ title: "No se pudo eliminar la zona", color: "error" });
   } finally {
