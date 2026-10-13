@@ -89,7 +89,12 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
     :fields="fields"
     :providers="providers"
     :loading="loading"
-    separator="o"
+    :separator="{
+      label: 'o',
+      // The default border shade nearly matches the dark card; the label is
+      // muted so the divider reads as one quiet element.
+      ui: { border: 'dark:border-accented', container: 'text-muted' },
+    }"
     title="Ingresá a AlertaFuego"
     description="Sin contraseña. Si es tu primera vez, la cuenta se crea al ingresar."
     :submit="{ label: 'Enviarme un enlace de acceso' }"
