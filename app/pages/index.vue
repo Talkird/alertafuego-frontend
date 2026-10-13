@@ -15,7 +15,6 @@ const heroLinks: ButtonProps[] = [
   {
     label: "Ingresar al mapa",
     to: "/mapa",
-    icon: "i-lucide-map",
     size: "xl",
   },
   {
@@ -178,7 +177,6 @@ const metrics = [
           {
             label: 'Ingresar al mapa',
             to: '/mapa',
-            icon: 'i-lucide-map',
             size: 'xl',
           },
         ]"

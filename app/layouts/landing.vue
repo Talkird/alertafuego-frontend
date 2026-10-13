@@ -73,7 +73,7 @@ const footerLinks = [
 
 <template>
   <div>
-    <UHeader>
+    <UHeader mode="drawer">
       <template #title>
         <img src="/icon.png" alt="" class="size-6" />
         <span class="text-highlighted font-semibold">AlertaFuego</span>
