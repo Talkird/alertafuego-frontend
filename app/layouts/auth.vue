@@ -1,11 +1,11 @@
 <template>
   <div class="grid min-h-screen lg:grid-cols-2">
     <!-- Tinted column + raised card: the form reads as one contained unit.
-         In dark mode the column goes a step darker than the card (an
-         elevated card would match the border color and hide the dividers). -->
-    <div
-      class="bg-elevated/70 flex flex-col p-6 sm:p-10 dark:bg-(--ui-color-neutral-950)"
-    >
+         Dark mode: the column keeps the default background (neutral 900)
+         and the card is half a step lighter (an 850, mixed from 900 and 800,
+         since there's no such shade). A full 800 card would match the border
+         color and hide the dividers inside it. -->
+    <div class="bg-elevated/70 dark:bg-default flex flex-col p-6 sm:p-10">
       <header class="flex items-center justify-between gap-4">
         <NuxtLink to="/" class="flex items-center gap-2">
           <img src="/icon.png" alt="" class="size-7" />
@@ -28,7 +28,7 @@
 
       <main class="flex flex-1 items-center justify-center py-10">
         <div
-          class="bg-default ring-default w-full max-w-md rounded-xl p-6 shadow-sm ring sm:p-8"
+          class="bg-default ring-default w-full max-w-md rounded-xl p-6 shadow-sm ring sm:p-8 dark:bg-[color-mix(in_oklch,var(--ui-color-neutral-900),var(--ui-color-neutral-800))]"
         >
           <slot />
         </div>
