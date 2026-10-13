@@ -442,6 +442,7 @@ function showAlert(alert: Alert) {
           <!-- On mobile the map stops above the peeking sheet, so its center
                (and the pin) and the attribution stay visible. -->
           <div
+            :data-picking="draft && isDesktop ? '' : undefined"
             :class="
               isDesktop
                 ? 'relative flex-1'
@@ -458,7 +459,6 @@ function showAlert(alert: Alert) {
             <LMap
               v-model:zoom="zoom"
               class="h-full w-full"
-              :class="{ 'cursor-crosshair': draft && isDesktop }"
               :center="INITIAL_CENTER"
               :min-zoom="3"
               :max-bounds="[

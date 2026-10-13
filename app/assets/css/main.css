@@ -10,6 +10,24 @@
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
+/* Tailwind v4's preflight dropped v3's `cursor: pointer` on buttons, and
+ * Nuxt UI doesn't add it, so every <button> (UButton, tabs, switches, select
+ * triggers, calendar days, radios) showed the arrow while links showed the
+ * hand. Restore the hand for everything clickable. In the base layer, so a
+ * utility like `cursor-grab` still wins; disabled controls keep Nuxt UI's
+ * `cursor-not-allowed`. */
+@layer base {
+  button:not(:disabled):not([aria-disabled="true"]),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="menuitem"]:not([data-disabled]),
+  [role="menuitemcheckbox"]:not([data-disabled]),
+  [role="menuitemradio"]:not([data-disabled]),
+  [role="option"]:not([data-disabled]),
+  [role="radiogroup"] label {
+    cursor: pointer;
+  }
+}
+
 /* Leaflet maps (mapa.vue, alertas.vue) */
 /* @unovis/ts (used by DetectionsChart on the dashboard) bundles its own
  * stale copy of leaflet.css, which it injects into <head> the moment its
@@ -83,4 +101,12 @@ html.dark .af-tiles-ign {
 
 .leaflet-container .leaflet-control-attribution a {
   color: var(--ui-text-toned);
+}
+
+/* Alertas, desktop: placing a zone's center. Set on the map's wrapper
+ * (LMap doesn't keep a reactive class on the Leaflet container), and beats
+ * Leaflet's own `.leaflet-grab` cursor. */
+[data-picking] .leaflet-container,
+[data-picking] .leaflet-interactive {
+  cursor: crosshair;
 }
