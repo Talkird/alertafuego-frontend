@@ -24,7 +24,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: "/login",
       callback: "/confirm",
-      exclude: ["/"],
+      exclude: ["/", "/confirmar-email"],
     },
   },
 
@@ -50,5 +50,6 @@ export default defineNuxtConfig({
     // Old name of the statistics page.
     "/dashboard": { redirect: "/estadisticas" },
     "/alertas": { ssr: false },
+    "/cuenta": { ssr: false },
   },
 });

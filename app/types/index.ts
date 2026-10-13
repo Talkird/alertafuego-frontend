@@ -116,3 +116,17 @@ export interface AreaDraft {
 export type SheetSnap = "peek" | "half" | "full";
 
 export type AlertsTab = "alerts" | "zones";
+
+export interface AccountSettings {
+  /** Where alerts go: the confirmed alternate address, or the account's. */
+  alert_email: string;
+  uses_account_email: boolean;
+  /** An alternate address waiting for its confirmation link. */
+  pending_email: string | null;
+  default_radius_km: number;
+  default_min_probability: number;
+}
+
+export type AccountSettingsUpdate = Partial<
+  Pick<AccountSettings, "default_radius_km" | "default_min_probability">
+>;

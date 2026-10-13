@@ -47,6 +47,11 @@ const items = computed<DropdownMenuItem[][]>(() => [
   ],
   [
     {
+      label: "Mi cuenta",
+      icon: "i-lucide-user-cog",
+      to: "/cuenta",
+    },
+    {
       label: "Apariencia",
       icon: "i-lucide-sun-moon",
       children: [

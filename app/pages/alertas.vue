@@ -8,6 +8,7 @@ import {
 import type { LeafletMouseEvent, Map as LeafletMap } from "leaflet";
 import type { BaseLayer, WeatherLayer } from "~/utils/mapLayers";
 import type {
+  AccountSettings,
   Alert,
   AlertArea,
   AlertsTab,
@@ -70,10 +71,10 @@ const INITIAL_CENTER: [number, number] = [-38.4161, -63.6167];
 type DetectionMarker = { openPopup: () => void };
 const markers: Record<number, DetectionMarker | null> = {};
 
-// Zones store the address alerts are sent to; the session's is the fallback
-// before any zone exists.
+// Where alerts go (Mi cuenta can set another address than the account's).
+const account = ref<AccountSettings | null>(null);
 const alertEmail = computed(
-  () => areas.value[0]?.email ?? user.value?.email ?? null,
+  () => account.value?.alert_email ?? user.value?.email ?? null,
 );
 
 const tabItems = computed(() => [
@@ -116,9 +117,10 @@ async function load() {
   }
   loading.value = true;
   try {
-    [areas.value, alerts.value] = await Promise.all([
+    [areas.value, alerts.value, account.value] = await Promise.all([
       fetchAlertAreas(token()),
       fetchAlerts(token()),
+      fetchAccount(token()),
     ]);
     // Returning users come for the alerts; first-timers need to create a zone.
     tab.value = areas.value.length ? "alerts" : "zones";
@@ -248,13 +250,15 @@ function selectAreaOnMap(area: AlertArea) {
 
 function newArea() {
   selectedAreaId.value = null;
+  // Starting values set in Mi cuenta.
+  const radiusKm = account.value?.default_radius_km ?? 25;
   draft.value = {
     id: null,
     name: "",
     lat: null,
     lon: null,
-    radius_km: 25,
-    min_probability: 0.65,
+    radius_km: radiusKm,
+    min_probability: account.value?.default_min_probability ?? 0.65,
   };
   if (!isDesktop.value) {
     mobileStep.value = "location";
@@ -263,8 +267,8 @@ function newArea() {
     const center = map?.getCenter();
     if (center) {
       setDraftCenter(center.lat, center.lng);
-      if (zoom.value < zoomForRadius(25) - 1) {
-        focus(center.lat, center.lng, zoomForRadius(25));
+      if (zoom.value < zoomForRadius(radiusKm) - 1) {
+        focus(center.lat, center.lng, zoomForRadius(radiusKm));
       }
     }
   }
