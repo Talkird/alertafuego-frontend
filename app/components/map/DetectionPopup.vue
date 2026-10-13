@@ -132,7 +132,8 @@ async function submitReport() {
     });
     showForm.value = false;
     await loadReports();
-  } catch {
+  } catch (error) {
+    if (isUnauthorized(error)) return;
     toast.add({
       title: "No se pudo enviar el reporte",
       color: "error",

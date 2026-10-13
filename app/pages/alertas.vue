@@ -109,7 +109,11 @@ function token(): string {
 }
 
 async function load() {
-  if (!session.value) return;
+  // No session: the auth redirect handles it. Don't sit on "Cargando…".
+  if (!session.value) {
+    loading.value = false;
+    return;
+  }
   loading.value = true;
   try {
     [areas.value, alerts.value] = await Promise.all([
@@ -118,8 +122,9 @@ async function load() {
     ]);
     // Returning users come for the alerts; first-timers need to create a zone.
     tab.value = areas.value.length ? "alerts" : "zones";
-  } catch {
-    toast.add({ title: "No se pudieron cargar las alertas", color: "error" });
+  } catch (error) {
+    if (!isUnauthorized(error))
+      toast.add({ title: "No se pudieron cargar las alertas", color: "error" });
   } finally {
     loading.value = false;
   }
@@ -365,8 +370,9 @@ async function saveDraft() {
     tab.value = "zones";
     // Show the new circle; on mobile the sheet stays low so it isn't covered.
     focusArea(saved);
-  } catch {
-    toast.add({ title: "No se pudo guardar la zona", color: "error" });
+  } catch (error) {
+    if (!isUnauthorized(error))
+      toast.add({ title: "No se pudo guardar la zona", color: "error" });
   } finally {
     saving.value = false;
   }
@@ -390,8 +396,9 @@ async function setActive(area: AlertArea, active: boolean) {
             color: "neutral",
           },
     );
-  } catch {
-    toast.add({ title: "No se pudo actualizar la zona", color: "error" });
+  } catch (error) {
+    if (!isUnauthorized(error))
+      toast.add({ title: "No se pudo actualizar la zona", color: "error" });
   }
 }
 
@@ -409,8 +416,9 @@ async function confirmDelete() {
     if (selectedAreaId.value === area.id) selectedAreaId.value = null;
     areaToDelete.value = null;
     toast.add({ title: `Zona «${area.name}» eliminada`, color: "success" });
-  } catch {
-    toast.add({ title: "No se pudo eliminar la zona", color: "error" });
+  } catch (error) {
+    if (!isUnauthorized(error))
+      toast.add({ title: "No se pudo eliminar la zona", color: "error" });
   } finally {
     deleting.value = false;
   }

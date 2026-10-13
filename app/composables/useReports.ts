@@ -15,15 +15,10 @@ export async function fetchMyReport(
   detectionId: number,
   accessToken: string,
 ): Promise<ReportPublic | null> {
-  const config = useRuntimeConfig();
-
   try {
     return await $fetch<ReportPublic>(
       `/detections/${detectionId}/reports/mine`,
-      {
-        baseURL: config.public.apiBase,
-        headers: { Authorization: `Bearer ${accessToken}` },
-      },
+      authFetchOptions(accessToken),
     );
   } catch (error) {
     if ((error as FetchError).statusCode === 404) return null;
@@ -36,12 +31,9 @@ export async function createReport(
   payload: ReportCreate,
   accessToken: string,
 ) {
-  const config = useRuntimeConfig();
-
   return $fetch<ReportPublic>(`/detections/${detectionId}/reports`, {
-    baseURL: config.public.apiBase,
+    ...authFetchOptions(accessToken),
     method: "POST",
-    headers: { Authorization: `Bearer ${accessToken}` },
     body: payload,
   });
 }
@@ -51,12 +43,9 @@ export async function updateReport(
   payload: ReportCreate,
   accessToken: string,
 ) {
-  const config = useRuntimeConfig();
-
   return $fetch<ReportPublic>(`/detections/${detectionId}/reports`, {
-    baseURL: config.public.apiBase,
+    ...authFetchOptions(accessToken),
     method: "PATCH",
-    headers: { Authorization: `Bearer ${accessToken}` },
     body: payload,
   });
 }

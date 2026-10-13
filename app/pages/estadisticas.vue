@@ -19,8 +19,9 @@ const period = ref<Period>("daily");
 
 // The total and the daily chart count these rows, so ask for the API's maximum
 // rather than the default 500.
+const DETECTIONS_LIMIT = 5000;
 const { data: detections, error: detectionsError } = useDetections(
-  computed(() => ({ ...query.value, limit: 5000 })),
+  computed(() => ({ ...query.value, limit: DETECTIONS_LIMIT })),
 );
 const { data: hours, error: hoursError } = useHourlyStats(query);
 useFetchErrorToast(
@@ -207,6 +208,11 @@ const sorting = ref([]);
         </template>
 
         <template #right>
+          <DashboardExportMenu
+            :detections="detections ?? []"
+            :range="range"
+            :limit="DETECTIONS_LIMIT"
+          />
           <UTooltip text="Actualizar">
             <UButton
               color="primary"
