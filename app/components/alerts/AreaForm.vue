@@ -72,7 +72,7 @@ function useMyLocation() {
       "
     >
       <div class="flex items-center gap-2">
-        <p class="text-highlighted flex-1 text-sm tabular-nums">
+        <p class="text-highlighted flex-1 font-mono text-xs">
           <template v-if="draft.lat !== null && draft.lon !== null">
             {{ draft.lat.toFixed(4) }}, {{ draft.lon.toFixed(4) }}
           </template>

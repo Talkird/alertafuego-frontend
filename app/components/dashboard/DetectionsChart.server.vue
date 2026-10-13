@@ -7,6 +7,6 @@
       </div>
     </template>
 
-    <div class="h-96" />
+    <div class="h-72" />
   </UCard>
 </template>

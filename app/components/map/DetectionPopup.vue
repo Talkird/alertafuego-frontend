@@ -81,7 +81,11 @@ function formatFecha(iso: string): string {
 }
 
 function formatHora(iso: string): string {
-  return toLocalDate(iso).toLocaleTimeString("es-AR", { hour12: false });
+  return toLocalDate(iso).toLocaleTimeString("es-AR", {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 async function submitReport() {
@@ -136,18 +140,29 @@ async function submitReport() {
 <template>
   <div class="min-w-56 space-y-3 p-0.5">
     <div class="flex items-center justify-between gap-3">
-      <span class="text-muted text-xs font-medium uppercase">Probabilidad</span>
-      <UBadge variant="subtle">
+      <span class="text-highlighted text-sm font-medium">
+        Probabilidad de fuego
+      </span>
+      <UBadge variant="subtle" class="tabular-nums">
         {{ (detection.probability * 100).toFixed(1) }}%
       </UBadge>
     </div>
 
-    <p class="text-highlighted text-sm">
-      Fecha: {{ formatFecha(detection.detected_at) }}
-    </p>
-    <p class="text-highlighted text-sm">
-      Hora: {{ formatHora(detection.detected_at) }}
-    </p>
+    <dl class="space-y-1 text-sm">
+      <div class="flex justify-between gap-3">
+        <dt class="text-muted">Imagen satelital</dt>
+        <dd class="text-highlighted tabular-nums">
+          {{ formatFecha(detection.image_time) }},
+          {{ formatHora(detection.image_time) }}
+        </dd>
+      </div>
+      <div class="flex justify-between gap-3">
+        <dt class="text-muted">Ubicación</dt>
+        <dd class="text-highlighted font-mono text-xs leading-5">
+          {{ detection.lat.toFixed(4) }}, {{ detection.lon.toFixed(4) }}
+        </dd>
+      </div>
+    </dl>
 
     <UButton
       v-if="detection.has_image"
@@ -172,7 +187,7 @@ async function submitReport() {
     </UModal>
 
     <div class="border-default border-t pt-2">
-      <p class="text-muted mb-1.5 text-xs font-medium uppercase">
+      <p class="text-highlighted mb-1.5 text-sm font-medium">
         Reportes ({{ detection.report_count }})
       </p>
 

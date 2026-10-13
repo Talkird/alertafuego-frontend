@@ -22,7 +22,11 @@ const query = computed(() => ({
   until: range.value.end.toISOString(),
 }));
 
-const { data: detections } = useDetections(query);
+// The total and the daily chart count these rows, so ask for the API's maximum
+// rather than the default 500.
+const { data: detections } = useDetections(
+  computed(() => ({ ...query.value, limit: 5000 })),
+);
 const { data: hours } = useHourlyStats(query);
 
 const route = useRoute();
@@ -119,7 +123,11 @@ const columns: TableColumn<StoredDetection>[] = [
     id: "location",
     header: "Ubicación",
     cell: ({ row }) =>
-      `${row.original.lat.toFixed(4)}, ${row.original.lon.toFixed(4)}`,
+      h(
+        "span",
+        { class: "font-mono text-xs" },
+        `${row.original.lat.toFixed(4)}, ${row.original.lon.toFixed(4)}`,
+      ),
   },
   {
     accessorKey: "probability",
@@ -139,14 +147,14 @@ const columns: TableColumn<StoredDetection>[] = [
     header: ({ column }) => getHeader(column, "Reportes"),
   },
   {
-    accessorKey: "detected_at",
-    header: "Detectado",
-    cell: ({ row }) => formatDate(row.original.detected_at),
+    accessorKey: "image_time",
+    header: "Imagen satelital",
+    cell: ({ row }) => formatDate(row.original.image_time),
   },
   {
-    accessorKey: "image_time",
-    header: "Imagen",
-    cell: ({ row }) => formatDate(row.original.image_time),
+    accessorKey: "detected_at",
+    header: "Procesada",
+    cell: ({ row }) => formatDate(row.original.detected_at),
   },
   {
     id: "actions",

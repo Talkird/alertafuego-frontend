@@ -12,9 +12,12 @@ const maxReports = ref(20);
 const query = computed(() => ({
   since: range.value.start.toISOString(),
   until: range.value.end.toISOString(),
+  // The API's maximum. The default (500) silently dropped detections on
+  // longer ranges.
+  limit: 5000,
 }));
 
-const { data: detections, refresh } = useDetections(query);
+const { data: detections, status, refresh } = useDetections(query);
 
 const filteredDetections = computed(() =>
   (detections.value ?? []).filter(
@@ -23,6 +26,13 @@ const filteredDetections = computed(() =>
       detection.report_count <= maxReports.value,
   ),
 );
+
+const countLabel = computed(() => {
+  const shown = filteredDetections.value.length;
+  const total = detections.value?.length ?? 0;
+  const noun = total === 1 ? "foco" : "focos";
+  return shown === total ? `${total} ${noun}` : `${shown} de ${total} ${noun}`;
+});
 </script>
 
 <template>
@@ -44,6 +54,9 @@ const filteredDetections = computed(() =>
         </template>
 
         <template #right>
+          <span class="text-muted hidden text-sm tabular-nums sm:inline">
+            {{ countLabel }}
+          </span>
           <UTooltip text="Actualizar">
             <UButton
               color="primary"
@@ -80,20 +93,23 @@ const filteredDetections = computed(() =>
             no-wrap
           />
 
-          <LCircleMarker
+          <MapDetectionMarker
             v-for="detection in filteredDetections"
             :key="detection.id"
-            :lat-lng="[detection.lat, detection.lon]"
-            :radius="6"
-            :color="detectionColor(detection.probability)"
-            :fill-color="detectionColor(detection.probability)"
-            :fill-opacity="0.7"
-          >
-            <LPopup :options="{ className: 'af-popup', closeButton: false }">
-              <MapDetectionPopup :detection="detection" />
-            </LPopup>
-          </LCircleMarker>
+            :detection="detection"
+          />
         </LMap>
+
+        <p
+          v-if="status === 'success' && !filteredDetections.length"
+          class="bg-default/90 ring-default text-toned pointer-events-none absolute top-3 left-1/2 z-[1000] -translate-x-1/2 rounded-lg px-3 py-1.5 text-sm shadow-sm ring"
+        >
+          {{
+            detections?.length
+              ? "Ningún foco coincide con los filtros."
+              : "No hay focos detectados en este período."
+          }}
+        </p>
 
         <MapLegend class="absolute bottom-6 left-3 z-[1000]" />
       </div>

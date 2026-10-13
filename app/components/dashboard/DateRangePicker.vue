@@ -8,6 +8,14 @@ import {
 import type { Range } from "~/types";
 
 const df = new DateFormatter("es-AR", { dateStyle: "medium" });
+const dfNoYear = new DateFormatter("es-AR", { day: "numeric", month: "short" });
+
+// "12 sept - 12 oct 2026": the year once when both ends share it, so the label
+// fits in the toolbar on phones. (Intl's own formatRange is longer in Spanish.)
+const formatRange = (start: Date, end: Date) =>
+  start.getFullYear() === end.getFullYear()
+    ? `${dfNoYear.format(start)} - ${df.format(end)}`
+    : `${df.format(start)} - ${df.format(end)}`;
 
 const selected = defineModel<Range>({ required: true });
 
@@ -95,7 +103,7 @@ const selectRange = (range: {
       <span class="truncate">
         <template v-if="selected.start">
           <template v-if="selected.end">
-            {{ df.format(selected.start) }} - {{ df.format(selected.end) }}
+            {{ formatRange(selected.start, selected.end) }}
           </template>
           <template v-else>
             {{ df.format(selected.start) }}
@@ -107,14 +115,14 @@ const selectRange = (range: {
       <template #trailing>
         <UIcon
           name="i-lucide-chevron-down"
-          class="shrink-0 text-dimmed size-5 group-data-[state=open]:rotate-180 transition-transform duration-200"
+          class="text-dimmed size-5 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180"
         />
       </template>
     </UButton>
 
     <template #content>
-      <div class="flex items-stretch sm:divide-x divide-default">
-        <div class="hidden sm:flex flex-col justify-center">
+      <div class="divide-default flex items-stretch sm:divide-x">
+        <div class="hidden flex-col justify-center sm:flex">
           <UButton
             v-for="(range, index) in ranges"
             :key="index"

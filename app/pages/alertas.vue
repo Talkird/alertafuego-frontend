@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { LeafletMouseEvent } from "leaflet";
+import type { LeafletMouseEvent, Map as LeafletMap } from "leaflet";
 import type { Alert, AlertArea, AreaDraft, StoredDetection } from "~/types";
 
 useSeoMeta({
@@ -9,6 +9,7 @@ useSeoMeta({
 });
 
 const session = useSupabaseSession();
+const user = useSupabaseUser();
 const toast = useToast();
 
 const AREA_COLOR = "#10b981";
@@ -25,6 +26,16 @@ const deleting = ref(false);
 
 const center = ref<[number, number]>([-38.4161, -63.6167]);
 const zoom = ref(4);
+let map: LeafletMap | null = null;
+
+// Zones store the address alerts are sent to; the session's is the fallback
+// before any zone exists.
+const alertEmail = computed(
+  () => areas.value[0]?.email ?? user.value?.email ?? null,
+);
+
+type DetectionMarker = { openPopup: () => void };
+const markers: Record<number, DetectionMarker | null> = {};
 
 // Several areas can alert on the same detection - draw each one once.
 const alertedDetections = computed(() => {
@@ -53,16 +64,55 @@ async function load() {
   }
 }
 
-onMounted(load);
+onMounted(async () => {
+  await load();
+  fitAreas();
+});
+
+function onMapReady(leafletMap: LeafletMap) {
+  map = leafletMap;
+  fitAreas();
+}
+
+/** Bounding box of a circle, in [[south, west], [north, east]] degrees. */
+function circleBounds(lat: number, lon: number, radiusKm: number) {
+  const dLat = radiusKm / 111.32;
+  const dLon = radiusKm / (111.32 * Math.cos((lat * Math.PI) / 180));
+  return [
+    [lat - dLat, lon - dLon],
+    [lat + dLat, lon + dLon],
+  ] as [[number, number], [number, number]];
+}
+
+// Open on the user's zones rather than the whole continent, where a 25 km
+// circle is barely visible. Runs once both the map and the zones are loaded.
+function fitAreas() {
+  if (!map || !areas.value.length) return;
+  const boxes = areas.value.map((a) => circleBounds(a.lat, a.lon, a.radius_km));
+  map.fitBounds(
+    [
+      [
+        Math.min(...boxes.map((b) => b[0][0])),
+        Math.min(...boxes.map((b) => b[0][1])),
+      ],
+      [
+        Math.max(...boxes.map((b) => b[1][0])),
+        Math.max(...boxes.map((b) => b[1][1])),
+      ],
+    ],
+    { padding: [32, 32], maxZoom: 11 },
+  );
+}
 
 /** A zoom level that fits a circle of this radius on screen. */
 function zoomForRadius(radiusKm: number): number {
-  return Math.round(Math.min(12, Math.max(5, 12 - Math.log2(radiusKm / 5))));
+  return Math.round(Math.min(11, Math.max(5, 11 - Math.log2(radiusKm / 5))));
 }
 
 function focus(lat: number, lon: number, zoomLevel: number) {
-  center.value = [lat, lon];
-  zoom.value = zoomLevel;
+  // One setView: changing the center and zoom refs separately dropped the pan
+  // while the zoom animated.
+  map?.setView([lat, lon], zoomLevel);
 }
 
 function newArea() {
@@ -95,7 +145,24 @@ function setDraftCenter(lat: number, lon: number) {
 }
 
 function onMapClick(event: LeafletMouseEvent) {
+  if (!draft.value) return;
+  const firstPick = draft.value.lat === null;
   setDraftCenter(event.latlng.lat, event.latlng.lng);
+  // Picked on a zoomed-out map, the new circle would be a speck: zoom in once.
+  const fit = zoomForRadius(draft.value.radius_km);
+  if (firstPick && zoom.value < fit - 1) {
+    focus(event.latlng.lat, event.latlng.lng, fit);
+  }
+}
+
+function showAlert(alert: Alert) {
+  // Move without animating, so the popup opens where the marker ends up rather
+  // than mid-pan. Opening it takes the user straight to the image and the
+  // report form.
+  map?.setView([alert.detection.lat, alert.detection.lon], 9, {
+    animate: false,
+  });
+  markers[alert.detection.id]?.openPopup();
 }
 
 function onLocate(lat: number, lon: number) {
@@ -213,7 +280,12 @@ function formatDateTime(iso: string): string {
           </section>
 
           <section class="space-y-3">
-            <h2 class="text-highlighted font-semibold">Mis zonas</h2>
+            <div>
+              <h2 class="text-highlighted font-semibold">Mis zonas</h2>
+              <p v-if="alertEmail" class="text-muted text-sm">
+                Los avisos llegan a {{ alertEmail }}
+              </p>
+            </div>
 
             <p v-if="loading" class="text-muted text-sm">Cargando…</p>
 
@@ -261,9 +333,6 @@ function formatDateTime(iso: string): string {
                   {{ Math.round(area.min_probability * 100) }}%
                   <template v-if="!area.active"> · Pausada</template>
                 </p>
-                <p class="text-muted truncate text-xs">
-                  Avisos a {{ area.email }}
-                </p>
 
                 <div class="flex gap-1">
                   <UButton
@@ -294,7 +363,8 @@ function formatDateTime(iso: string): string {
             <h2 class="text-highlighted font-semibold">Alertas recientes</h2>
 
             <p v-if="!loading && !alerts.length" class="text-muted text-sm">
-              Sin alertas por ahora.
+              Todavía no hubo focos en tus zonas. Cuando se detecte uno, aparece
+              acá y te llega un email.
             </p>
 
             <ul class="divide-default divide-y">
@@ -302,7 +372,7 @@ function formatDateTime(iso: string): string {
                 <button
                   type="button"
                   class="hover:bg-elevated/50 flex w-full items-center gap-3 rounded px-1 py-2 text-left"
-                  @click="focus(alert.detection.lat, alert.detection.lon, 10)"
+                  @click="showAlert(alert)"
                 >
                   <span
                     class="size-2.5 shrink-0 rounded-full"
@@ -337,8 +407,7 @@ function formatDateTime(iso: string): string {
               </li>
             </ul>
             <p v-if="alerts.length" class="text-muted text-xs">
-              Tocá una alerta para verla en el mapa, y el punto para ver la
-              imagen o reportarla.
+              Tocá una alerta para ver la imagen satelital o reportarla.
             </p>
           </section>
         </aside>
@@ -365,6 +434,7 @@ function formatDateTime(iso: string): string {
             ]"
             :max-bounds-viscosity="1.0"
             :use-global-leaflet="false"
+            @ready="onMapReady"
             @click="onMapClick"
           >
             <LTileLayer
@@ -397,19 +467,14 @@ function formatDateTime(iso: string): string {
               :interactive="false"
             />
 
-            <LCircleMarker
+            <MapDetectionMarker
               v-for="detection in alertedDetections"
               :key="detection.id"
-              :lat-lng="[detection.lat, detection.lon]"
-              :radius="6"
-              :color="detectionColor(detection.probability)"
-              :fill-color="detectionColor(detection.probability)"
-              :fill-opacity="0.7"
-            >
-              <LPopup :options="{ className: 'af-popup', closeButton: false }">
-                <MapDetectionPopup :detection="detection" />
-              </LPopup>
-            </LCircleMarker>
+              :ref="
+                (el) => (markers[detection.id] = el as DetectionMarker | null)
+              "
+              :detection="detection"
+            />
           </LMap>
 
           <MapLegend

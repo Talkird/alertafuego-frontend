@@ -40,12 +40,6 @@ const items = computed<DropdownMenuItem[][]>(() => [
   ],
   [
     {
-      label: "Configuración",
-      icon: "i-lucide-settings",
-    },
-  ],
-  [
-    {
       label: "Apariencia",
       icon: "i-lucide-sun-moon",
       children: [

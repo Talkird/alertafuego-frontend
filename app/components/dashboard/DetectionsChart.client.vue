@@ -10,6 +10,7 @@ import {
   startOfYear,
   format,
 } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   VisXYContainer,
   VisLine,
@@ -20,8 +21,7 @@ import {
 } from "@unovis/vue";
 import { CurveType } from "@unovis/ts";
 import { useElementSize } from "@vueuse/core";
-import type { StoredDetection } from "~/types";
-import type { Period, Range } from "~/types";
+import type { Period, Range, StoredDetection } from "~/types";
 
 const cardRef = useTemplateRef<HTMLElement | null>("cardRef");
 
@@ -78,7 +78,7 @@ const data = computed<DataRecord[]>(() => {
 
   const counts = new Map<string, number>();
   for (const detection of props.detections) {
-    const bucketKey = format(startOf(new Date(detection.image_time)), key);
+    const bucketKey = format(startOf(parseUtc(detection.image_time)), key);
     counts.set(bucketKey, (counts.get(bucketKey) ?? 0) + 1);
   }
 
@@ -94,7 +94,7 @@ const y = (d: DataRecord) => d.count;
 const total = computed(() => props.detections.length);
 
 const formatDate = (date: Date): string =>
-  format(date, bucketConfig[props.period].label);
+  format(date, bucketConfig[props.period].label, { locale: es });
 
 const xTicks = (i: number) => {
   if (i === 0 || i === data.value.length - 1 || !data.value[i]) {
@@ -124,7 +124,7 @@ const template = (d: DataRecord) =>
       :data="data"
       :padding="{ top: 40 }"
       :margin="{ left: -5, right: -5 }"
-      class="h-96"
+      class="h-72"
       :width="width"
     >
       <VisLine
