@@ -38,4 +38,15 @@ export default defineNuxtConfig({
   },
 
   css: ["~/assets/css/main.css"],
+
+  // Pages behind login render in the browser only. The site is deployed with
+  // `nuxt generate`, and pre-rendering these pages ran the auth redirect with
+  // no session at build time, baking a redirect to /login into their HTML -
+  // so reloading any of them logged the user out. Client-rendered, the
+  // redirect check runs in the browser, where the session cookie is.
+  routeRules: {
+    "/mapa": { ssr: false },
+    "/dashboard": { ssr: false },
+    "/alertas": { ssr: false },
+  },
 });
