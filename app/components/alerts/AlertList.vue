@@ -31,7 +31,7 @@ function formatDateTime(iso: string): string {
       :title="hasZones ? 'Sin alertas por ahora' : 'Todavía no hay alertas'"
       :description="
         hasZones
-          ? 'Cuando se detecte un foco en alguna de tus zonas, aparece acá y te llega un email.'
+          ? 'Cuando se detecte un foco en alguna de tus zonas, aparece acá y te avisamos por los canales de Mi cuenta.'
           : 'Las alertas aparecen cuando se detecta un foco dentro de una de tus zonas.'
       "
       :actions="
@@ -70,16 +70,23 @@ function formatDateTime(iso: string): string {
                 {{ Math.round(alert.detection.probability * 100) }}%
               </span>
             </span>
-            <UTooltip
-              :text="alert.emailed ? 'Email enviado' : 'Email no enviado'"
-            >
-              <UIcon
-                :name="
-                  alert.emailed ? 'i-lucide-mail-check' : 'i-lucide-mail-x'
-                "
-                class="text-muted size-4 shrink-0"
-              />
-            </UTooltip>
+            <span class="flex shrink-0 items-center gap-1.5">
+              <UTooltip v-if="alert.emailed" text="Email enviado">
+                <UIcon name="i-lucide-mail-check" class="text-muted size-4" />
+              </UTooltip>
+              <UTooltip v-if="alert.telegram_sent" text="Enviada por Telegram">
+                <UIcon
+                  name="i-simple-icons-telegram"
+                  class="text-muted size-3.5"
+                />
+              </UTooltip>
+              <UTooltip
+                v-if="!alert.emailed && !alert.telegram_sent"
+                text="No se envió aviso, solo aparece acá"
+              >
+                <UIcon name="i-lucide-bell-off" class="text-muted size-4" />
+              </UTooltip>
+            </span>
           </button>
         </li>
       </ul>

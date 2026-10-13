@@ -77,6 +77,7 @@ export interface Alert {
   area_name: string;
   created_at: string;
   emailed: boolean;
+  telegram_sent: boolean;
   detection: StoredDetection;
 }
 
@@ -118,15 +119,20 @@ export type SheetSnap = "peek" | "half" | "full";
 export type AlertsTab = "alerts" | "zones";
 
 export interface AccountSettings {
-  /** Where alerts go: the confirmed alternate address, or the account's. */
+  email_alerts: boolean;
+  /** Where email alerts go: the confirmed alternate address, or the account's. */
   alert_email: string;
   uses_account_email: boolean;
   /** An alternate address waiting for its confirmation link. */
   pending_email: string | null;
-  default_radius_km: number;
-  default_min_probability: number;
+  /** Whether the backend has a Telegram bot configured. */
+  telegram_available: boolean;
+  telegram_connected: boolean;
+  /** The connected Telegram account's @username or first name. */
+  telegram_name: string | null;
 }
 
-export type AccountSettingsUpdate = Partial<
-  Pick<AccountSettings, "default_radius_km" | "default_min_probability">
->;
+export interface TelegramLink {
+  url: string;
+  expires_at: string;
+}

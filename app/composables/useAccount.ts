@@ -1,17 +1,14 @@
-import type { AccountSettings, AccountSettingsUpdate } from "~/types";
+import type { AccountSettings, TelegramLink } from "~/types";
 
 export async function fetchAccount(accessToken: string) {
   return $fetch<AccountSettings>("/account", authFetchOptions(accessToken));
 }
 
-export async function updateAccount(
-  payload: AccountSettingsUpdate,
-  accessToken: string,
-) {
+export async function setEmailAlerts(enabled: boolean, accessToken: string) {
   return $fetch<AccountSettings>("/account", {
     ...authFetchOptions(accessToken),
     method: "PATCH",
-    body: payload,
+    body: { email_alerts: enabled },
   });
 }
 
@@ -45,5 +42,27 @@ export async function confirmAlertEmail(token: string) {
     baseURL: useRuntimeConfig().public.apiBase,
     method: "POST",
     body: { token },
+  });
+}
+
+/** A one-time link to the bot: pressing Start in Telegram connects the chat. */
+export async function createTelegramLink(accessToken: string) {
+  return $fetch<TelegramLink>("/account/telegram/link", {
+    ...authFetchOptions(accessToken),
+    method: "POST",
+  });
+}
+
+export async function disconnectTelegram(accessToken: string) {
+  return $fetch<AccountSettings>("/account/telegram", {
+    ...authFetchOptions(accessToken),
+    method: "DELETE",
+  });
+}
+
+export async function sendTelegramTest(accessToken: string) {
+  return $fetch("/account/telegram/test", {
+    ...authFetchOptions(accessToken),
+    method: "POST",
   });
 }

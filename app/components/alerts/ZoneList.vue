@@ -5,7 +5,8 @@ import type { AlertArea } from "~/types";
 const props = defineProps<{
   areas: AlertArea[];
   loading: boolean;
-  email: string | null;
+  /** How alerts reach the user (channels set in Mi cuenta). */
+  delivery: string | null;
   /** Zone highlighted from the map (hovered or clicked circle). */
   highlightedId: number | null;
 }>();
@@ -56,7 +57,7 @@ watch(
       v-else-if="!areas.length"
       icon="i-lucide-map-pin-plus"
       title="Todavía no tenés zonas"
-      description="Elegí un punto y un radio, por ejemplo tu campo o tu localidad, y te avisamos por email cuando se detecte un foco dentro."
+      description="Elegí un punto y un radio, por ejemplo tu campo o tu localidad, y te avisamos cuando se detecte un foco dentro."
       :actions="[
         {
           label: 'Crear una zona',
@@ -67,8 +68,9 @@ watch(
     />
 
     <template v-else>
-      <p v-if="email" class="text-muted text-sm">
-        Los avisos llegan a {{ email }}
+      <p v-if="delivery" class="text-muted text-sm">
+        {{ delivery }}
+        <ULink to="/cuenta" class="text-primary font-medium">Cambiar</ULink>
       </p>
 
       <ul class="space-y-2">

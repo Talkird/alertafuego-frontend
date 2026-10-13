@@ -71,11 +71,18 @@ const INITIAL_CENTER: [number, number] = [-38.4161, -63.6167];
 type DetectionMarker = { openPopup: () => void };
 const markers: Record<number, DetectionMarker | null> = {};
 
-// Where alerts go (Mi cuenta can set another address than the account's).
+// How alerts reach the user, as set in Mi cuenta.
 const account = ref<AccountSettings | null>(null);
-const alertEmail = computed(
-  () => account.value?.alert_email ?? user.value?.email ?? null,
-);
+const delivery = computed(() => {
+  if (!account.value) return null;
+  const channels = [
+    account.value.email_alerts && `por email a ${account.value.alert_email}`,
+    account.value.telegram_connected && "por Telegram",
+  ].filter(Boolean);
+  return channels.length
+    ? `Los avisos llegan ${channels.join(" y ")}.`
+    : "Los avisos solo aparecen acá: no tenés ningún canal activo.";
+});
 
 const tabItems = computed(() => [
   {
@@ -250,15 +257,13 @@ function selectAreaOnMap(area: AlertArea) {
 
 function newArea() {
   selectedAreaId.value = null;
-  // Starting values set in Mi cuenta.
-  const radiusKm = account.value?.default_radius_km ?? 25;
   draft.value = {
     id: null,
     name: "",
     lat: null,
     lon: null,
-    radius_km: radiusKm,
-    min_probability: account.value?.default_min_probability ?? 0.65,
+    radius_km: 25,
+    min_probability: 0.65,
   };
   if (!isDesktop.value) {
     mobileStep.value = "location";
@@ -267,8 +272,8 @@ function newArea() {
     const center = map?.getCenter();
     if (center) {
       setDraftCenter(center.lat, center.lng);
-      if (zoom.value < zoomForRadius(radiusKm) - 1) {
-        focus(center.lat, center.lng, zoomForRadius(radiusKm));
+      if (zoom.value < zoomForRadius(25) - 1) {
+        focus(center.lat, center.lng, zoomForRadius(25));
       }
     }
   }
@@ -499,7 +504,7 @@ function showAlert(alert: Alert) {
             v-else
             :areas="areas"
             :loading="loading"
-            :email="alertEmail"
+            :delivery="delivery"
             :highlighted-id="highlightedAreaId"
             @create="newArea"
             @focus="focusArea"
