@@ -54,7 +54,7 @@ watch(
 
     <UEmpty
       v-else-if="!areas.length"
-      icon="i-lucide-bell"
+      icon="i-lucide-map-pin-plus"
       title="Todavía no tenés zonas"
       description="Elegí un punto y un radio, por ejemplo tu campo o tu localidad, y te avisamos por email cuando se detecte un foco dentro."
       :actions="[

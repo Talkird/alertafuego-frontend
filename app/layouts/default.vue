@@ -14,7 +14,7 @@ const links = [
   },
   {
     label: "Dashboard",
-    icon: "i-lucide-layout-dashboard",
+    icon: "i-lucide-chart-column",
     to: "/dashboard",
     onSelect: () => {
       open.value = false;

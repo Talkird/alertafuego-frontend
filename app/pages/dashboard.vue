@@ -106,7 +106,7 @@ function getRowItems(row: Row<StoredDetection>) {
   return [
     {
       label: "Ver en Google Maps",
-      icon: "i-lucide-map-pin",
+      icon: "i-lucide-external-link",
       onSelect() {
         window.open(`https://www.google.com/maps?q=${lat},${lon}`, "_blank");
       },

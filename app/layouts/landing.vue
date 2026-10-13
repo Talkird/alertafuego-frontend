@@ -103,8 +103,7 @@ const footerLinks = [
     <UFooter>
       <template #left>
         <p class="text-muted text-sm">
-          AlertaFuego · Proyecto Final de Ingeniería en Informática, UADE · ©
-          {{ new Date().getFullYear() }}
+          AlertaFuego © {{ new Date().getFullYear() }}
         </p>
       </template>
 
