@@ -102,7 +102,7 @@ const countLabel = computed(() => {
         </template>
 
         <template #right>
-          <span class="text-muted hidden text-sm tabular-nums sm:inline">
+          <span class="text-muted me-1.5 hidden text-sm tabular-nums sm:inline">
             {{ countLabel }}
             <template v-if="updatedLabel"> · {{ updatedLabel }}</template>
           </span>

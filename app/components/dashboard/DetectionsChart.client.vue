@@ -41,6 +41,12 @@ type DataRecord = {
 
 const { width } = useElementSize(cardRef);
 
+// Fixed (not random) so the placeholder doesn't change on every load.
+const SKELETON_BARS = [
+  22, 30, 18, 36, 48, 34, 26, 40, 58, 44, 30, 26, 36, 52, 70, 56, 40, 32, 28,
+  44, 62, 48, 36, 30, 24, 38, 50, 42, 28, 20,
+];
+
 type BucketConfig = {
   each: (range: Range) => Date[];
   startOf: (date: Date) => Date;
@@ -132,9 +138,25 @@ const template = (d: DataRecord) =>
       </div>
     </template>
 
-    <!-- Chart placeholder at the chart's exact height (h-72). -->
-    <div v-if="loading" aria-hidden="true" class="h-72 px-4 pt-10 pb-6 sm:px-6">
-      <USkeleton class="size-full" />
+    <!-- Chart-shaped placeholder at the chart's exact height (h-72): bars on a
+         baseline and axis labels, so it reads as "a chart is loading" rather
+         than an empty box. -->
+    <div
+      v-if="loading"
+      aria-hidden="true"
+      class="flex h-72 flex-col px-4 pt-10 pb-3 sm:px-6"
+    >
+      <div class="border-default flex flex-1 items-end gap-1 border-b">
+        <USkeleton
+          v-for="(height, i) in SKELETON_BARS"
+          :key="i"
+          class="flex-1 rounded-b-none"
+          :style="{ height: `${height}%` }"
+        />
+      </div>
+      <div class="flex justify-around pt-3">
+        <USkeleton v-for="i in 5" :key="i" class="h-3 w-10" />
+      </div>
     </div>
 
     <VisXYContainer
