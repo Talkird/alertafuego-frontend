@@ -26,7 +26,9 @@ const pad = (hour: number) => String(hour).padStart(2, "0");
 
 const xTicks = (hour: number) => (hour % 3 === 0 ? `${pad(hour)} h` : "");
 
-const tooltip = (d: HourStat) =>
+// StackedBar hands its tooltip a wrapper per bar ({ datum, index, stacked,
+// stackIndex }), not the data row itself.
+const tooltip = ({ datum: d }: { datum: HourStat }) =>
   `${pad(d.hour)}:00–${pad(d.hour)}:59: ${d.detection_count} foco${d.detection_count === 1 ? "" : "s"}`;
 </script>
 
