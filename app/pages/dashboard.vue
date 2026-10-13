@@ -27,6 +27,7 @@ const query = computed(() => ({
 }));
 
 const { data: detections } = useDetections(query);
+const { data: hours } = useHourlyStats(query);
 
 function confidenceColor(probability: number): "error" | "warning" | "neutral" {
   if (probability >= 0.8) return "error";
@@ -197,6 +198,13 @@ const sorting = ref([]);
         :period="period"
         :range="range"
       />
+
+      <DashboardHourlyChart :hours="hours ?? []" />
+
+      <div class="grid shrink-0 gap-4 lg:grid-cols-2">
+        <DashboardRegionStats :range="range" />
+        <DashboardReportStats :range="range" />
+      </div>
 
       <UTable
         ref="table"

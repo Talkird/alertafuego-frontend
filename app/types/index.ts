@@ -48,3 +48,66 @@ export interface ReportCreate {
   category?: ReportCategory | null;
   comment?: string | null;
 }
+
+export interface AlertArea {
+  id: number;
+  name: string;
+  email: string;
+  lat: number;
+  lon: number;
+  radius_km: number;
+  min_probability: number;
+  active: boolean;
+  created_at: string;
+}
+
+export interface AlertAreaCreate {
+  name: string;
+  lat: number;
+  lon: number;
+  radius_km: number;
+  min_probability: number;
+}
+
+export type AlertAreaUpdate = Partial<AlertAreaCreate> & { active?: boolean };
+
+export interface Alert {
+  id: number;
+  area_id: number;
+  area_name: string;
+  created_at: string;
+  emailed: boolean;
+  detection: StoredDetection;
+}
+
+export type RegionKind = "province" | "department";
+
+export interface RegionStat {
+  code: string;
+  name: string;
+  province_name: string | null;
+  detection_count: number;
+  max_probability: number;
+}
+
+export interface HourStat {
+  hour: number;
+  detection_count: number;
+}
+
+export interface ReportStat {
+  verdict: ReportVerdict;
+  category: ReportCategory | null;
+  report_count: number;
+}
+
+/** An alert area being created (id null) or edited, in the form. */
+export interface AreaDraft {
+  id: number | null;
+  name: string;
+  /** null until picked on the map or from the browser's location. */
+  lat: number | null;
+  lon: number | null;
+  radius_km: number;
+  min_probability: number;
+}

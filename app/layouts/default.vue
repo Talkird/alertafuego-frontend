@@ -7,7 +7,7 @@ const links = [
   {
     label: "Mapa",
     icon: "i-lucide-map",
-    to: "/",
+    to: "/mapa",
     onSelect: () => {
       open.value = false;
     },
@@ -16,6 +16,14 @@ const links = [
     label: "Dashboard",
     icon: "i-lucide-layout-dashboard",
     to: "/dashboard",
+    onSelect: () => {
+      open.value = false;
+    },
+  },
+  {
+    label: "Alertas",
+    icon: "i-lucide-bell",
+    to: "/alertas",
     onSelect: () => {
       open.value = false;
     },

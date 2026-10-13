@@ -1,0 +1,79 @@
+<script setup lang="ts">
+import type { Range, RegionKind } from "~/types";
+
+const props = defineProps<{
+  range: Range;
+}>();
+
+const TOP = 10;
+
+const kind = ref<RegionKind>("province");
+const kindOptions = [
+  { label: "Provincias", value: "province" },
+  { label: "Departamentos", value: "department" },
+];
+
+const query = computed(() => ({
+  kind: kind.value,
+  since: props.range.start.toISOString(),
+  until: props.range.end.toISOString(),
+}));
+
+const { data: regions, status } = useRegionStats(query);
+
+const top = computed(() => (regions.value ?? []).slice(0, TOP));
+const max = computed(() => top.value[0]?.detection_count ?? 1);
+</script>
+
+<template>
+  <UCard>
+    <template #header>
+      <div class="flex items-center justify-between gap-3">
+        <p class="text-muted text-xs uppercase">Focos por región</p>
+        <USelect v-model="kind" :items="kindOptions" size="xs" class="w-36" />
+      </div>
+    </template>
+
+    <p v-if="status === 'pending' && !top.length" class="text-muted text-sm">
+      Cargando…
+    </p>
+    <p v-else-if="!top.length" class="text-muted text-sm">
+      Sin focos en este período.
+    </p>
+
+    <ol v-else class="space-y-2.5">
+      <li v-for="region in top" :key="region.code">
+        <UTooltip
+          :text="`Probabilidad máxima: ${Math.round(region.max_probability * 100)}%`"
+          :content="{ side: 'top', align: 'start' }"
+        >
+          <div class="w-full space-y-1">
+            <div class="flex items-baseline justify-between gap-3 text-sm">
+              <span class="text-highlighted truncate">
+                {{ region.name }}
+                <span v-if="region.province_name" class="text-muted text-xs">
+                  · {{ region.province_name }}
+                </span>
+              </span>
+              <span class="text-toned shrink-0 tabular-nums">
+                {{ region.detection_count }}
+              </span>
+            </div>
+            <div class="bg-elevated h-2 rounded">
+              <div
+                class="bg-primary h-2 rounded"
+                :style="{
+                  width: `${(region.detection_count / max) * 100}%`,
+                }"
+              />
+            </div>
+          </div>
+        </UTooltip>
+      </li>
+    </ol>
+
+    <p v-if="(regions?.length ?? 0) > TOP" class="text-muted mt-3 text-xs">
+      {{ regions!.length - TOP }} regiones más con focos en este período.
+    </p>
+  </UCard>
+</template>
