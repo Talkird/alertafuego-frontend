@@ -149,14 +149,14 @@ async function submitReport() {
     </div>
 
     <dl class="space-y-1 text-sm">
-      <div class="flex justify-between gap-3">
+      <div class="flex flex-wrap justify-between gap-x-3">
         <dt class="text-muted">Imagen satelital</dt>
         <dd class="text-highlighted tabular-nums">
           {{ formatFecha(detection.image_time) }},
           {{ formatHora(detection.image_time) }}
         </dd>
       </div>
-      <div class="flex justify-between gap-3">
+      <div class="flex flex-wrap justify-between gap-x-3">
         <dt class="text-muted">Ubicación</dt>
         <dd class="text-highlighted font-mono text-xs leading-5">
           {{ detection.lat.toFixed(4) }}, {{ detection.lon.toFixed(4) }}

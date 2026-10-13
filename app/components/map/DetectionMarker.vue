@@ -31,6 +31,15 @@ function onPopupClose() {
 // the content changes size (first render, reports loaded, report form shown).
 useResizeObserver(content, () => popup?.update());
 
+// Leave room for the overlay buttons in the map's top corners ("Capas",
+// "Leyenda"), so an opened popup is panned clear of them.
+const POPUP_OPTIONS = {
+  className: "af-popup",
+  closeButton: false,
+  autoPanPaddingTopLeft: [16, 112] as [number, number],
+  autoPanPaddingBottomRight: [16, 16] as [number, number],
+};
+
 defineExpose({
   openPopup: () => marker.value?.leafletObject?.openPopup(),
 });
@@ -47,7 +56,7 @@ defineExpose({
     @popupopen="onPopupOpen"
     @popupclose="onPopupClose"
   >
-    <LPopup :options="{ className: 'af-popup', closeButton: false }">
+    <LPopup :options="POPUP_OPTIONS">
       <div ref="content">
         <MapDetectionPopup v-if="open" :detection="detection" />
       </div>

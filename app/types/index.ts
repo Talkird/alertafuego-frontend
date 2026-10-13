@@ -111,3 +111,8 @@ export interface AreaDraft {
   radius_km: number;
   min_probability: number;
 }
+
+/** Height of the mobile Alertas bottom sheet. */
+export type SheetSnap = "peek" | "half" | "full";
+
+export type AlertsTab = "alerts" | "zones";

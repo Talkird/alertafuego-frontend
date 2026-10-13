@@ -11,6 +11,9 @@ const { range } = storeToRefs(useFiltersStore());
 const minConfidence = ref(0);
 const maxReports = ref(20);
 const baseLayer = ref<BaseLayer>("map");
+// A constant, not an inline array: vue-leaflet re-centers the map whenever the
+// center prop changes identity, i.e. on every re-render (e.g. a filter change).
+const INITIAL_CENTER: [number, number] = [-38.4161, -63.6167];
 const weatherLayer = ref<WeatherLayer | null>(null);
 
 const query = computed(() => ({
@@ -81,7 +84,7 @@ const countLabel = computed(() => {
           class="h-full w-full"
           :zoom="4"
           :min-zoom="3"
-          :center="[-38.4161, -63.6167]"
+          :center="INITIAL_CENTER"
           :max-bounds="[
             [-90, -180],
             [90, 180],

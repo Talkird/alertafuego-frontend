@@ -5,16 +5,19 @@ const draft = defineModel<AreaDraft>({ required: true });
 
 defineProps<{
   saving?: boolean;
+  /** Mobile: the center is picked in a separate step (map under a fixed pin),
+   * so the form only shows it with a button to go back to that step. */
+  relocatable?: boolean;
 }>();
 
 const emit = defineEmits<{
   save: [];
   cancel: [];
   locate: [lat: number, lon: number];
+  relocate: [];
 }>();
 
-const toast = useToast();
-const locating = ref(false);
+const { locating, locate } = useMyLocation();
 
 // The slider works in whole percent; the API takes a 0-1 probability.
 const minProbabilityPct = computed({
@@ -28,27 +31,6 @@ const canSave = computed(
     draft.value.lat !== null &&
     draft.value.lon !== null,
 );
-
-function useMyLocation() {
-  if (!navigator.geolocation) {
-    toast.add({
-      title: "Tu navegador no comparte ubicación",
-      color: "warning",
-    });
-    return;
-  }
-  locating.value = true;
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      locating.value = false;
-      emit("locate", position.coords.latitude, position.coords.longitude);
-    },
-    () => {
-      locating.value = false;
-      toast.add({ title: "No se pudo obtener tu ubicación", color: "warning" });
-    },
-  );
-}
 </script>
 
 <template>
@@ -59,11 +41,29 @@ function useMyLocation() {
         placeholder="Ej: Campo en Corrientes"
         :maxlength="100"
         class="w-full"
-        autofocus
+        :autofocus="!relocatable || draft.id === null"
       />
     </UFormField>
 
+    <UFormField v-if="relocatable" label="Centro">
+      <div class="flex items-center gap-2">
+        <p class="text-highlighted flex-1 font-mono text-xs">
+          {{ draft.lat?.toFixed(4) }}, {{ draft.lon?.toFixed(4) }}
+        </p>
+        <UButton
+          size="xs"
+          color="neutral"
+          variant="subtle"
+          icon="i-lucide-map-pin"
+          @click="emit('relocate')"
+        >
+          Cambiar
+        </UButton>
+      </div>
+    </UFormField>
+
     <UFormField
+      v-else
       label="Centro"
       :help="
         draft.lat === null
@@ -84,7 +84,7 @@ function useMyLocation() {
           variant="subtle"
           icon="i-lucide-locate-fixed"
           :loading="locating"
-          @click="useMyLocation"
+          @click="locate((lat, lon) => emit('locate', lat, lon))"
         >
           Mi ubicación
         </UButton>
