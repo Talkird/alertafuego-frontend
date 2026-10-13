@@ -34,10 +34,10 @@ const tooltip = (d: HourStat) =>
   <UCard :ui="{ root: 'overflow-visible', body: 'pb-3!' }">
     <template #header>
       <div>
-        <p class="text-muted mb-1.5 text-xs uppercase">
-          Focos por hora del día (hora argentina)
+        <p class="text-muted mb-1 text-sm">
+          Focos por hora del día, hora argentina
         </p>
-        <p class="text-highlighted text-sm">
+        <p class="text-highlighted text-lg font-semibold">
           <template v-if="busiest">
             Hora con más focos: {{ pad(busiest.hour) }} h
           </template>

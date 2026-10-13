@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { sub } from "date-fns";
 import type { TableColumn } from "@nuxt/ui";
 import type { Column, Row } from "@tanstack/vue-table";
 import { getPaginationRowModel } from "@tanstack/table-core";
-import type { StoredDetection, Period, Range } from "~/types";
+import type { StoredDetection, Period } from "~/types";
 
 useSeoMeta({
   title: "Dashboard",
@@ -15,10 +14,7 @@ const UBadge = resolveComponent("UBadge");
 const UButton = resolveComponent("UButton");
 const UDropdownMenu = resolveComponent("UDropdownMenu");
 
-const range = shallowRef<Range>({
-  start: sub(new Date(), { days: 30 }),
-  end: new Date(),
-});
+const { range } = storeToRefs(useFiltersStore());
 const period = ref<Period>("daily");
 
 const query = computed(() => ({
@@ -28,6 +24,19 @@ const query = computed(() => ({
 
 const { data: detections } = useDetections(query);
 const { data: hours } = useHourlyStats(query);
+
+const route = useRoute();
+
+// The region and report cards fetch their own data, so refresh by key: the
+// keys set in useDetections and useStats.
+function refresh() {
+  return refreshNuxtData([
+    `detections:${route.path}`,
+    "stats:hourly",
+    "stats:regions",
+    "stats:reports",
+  ]);
+}
 
 function confidenceColor(probability: number): "error" | "warning" | "neutral" {
   if (probability >= 0.8) return "error";
@@ -188,6 +197,19 @@ const sorting = ref([]);
         <template #left>
           <DashboardDateRangePicker v-model="range" class="-ms-1" />
           <DashboardPeriodSelect v-model="period" :range="range" />
+        </template>
+
+        <template #right>
+          <UTooltip text="Actualizar">
+            <UButton
+              color="primary"
+              variant="subtle"
+              icon="i-lucide-refresh-cw"
+              aria-label="Actualizar"
+              loading-auto
+              @click="refresh()"
+            />
+          </UTooltip>
         </template>
       </UDashboardToolbar>
     </template>

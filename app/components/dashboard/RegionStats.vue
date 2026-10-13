@@ -29,7 +29,7 @@ const max = computed(() => top.value[0]?.detection_count ?? 1);
   <UCard>
     <template #header>
       <div class="flex items-center justify-between gap-3">
-        <p class="text-muted text-xs uppercase">Focos por región</p>
+        <p class="text-highlighted text-sm font-medium">Focos por región</p>
         <USelect v-model="kind" :items="kindOptions" size="xs" class="w-36" />
       </div>
     </template>

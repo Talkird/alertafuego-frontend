@@ -411,6 +411,11 @@ function formatDateTime(iso: string): string {
               </LPopup>
             </LCircleMarker>
           </LMap>
+
+          <MapLegend
+            v-if="alertedDetections.length"
+            class="absolute bottom-6 left-3 z-[1000]"
+          />
         </div>
       </div>
 

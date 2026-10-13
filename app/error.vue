@@ -1,18 +1,32 @@
 <script setup lang="ts">
 import type { NuxtError } from "#app";
-
-definePageMeta({
-  layout: "auth",
-});
+import { es } from "@nuxt/ui/locale";
 
 const props = defineProps<{ error: NuxtError }>();
+
+// Nuxt's own status messages are in English and technical.
+const message = computed(() =>
+  props.error.status === 404
+    ? "La página que buscás no existe o cambió de dirección."
+    : "Algo falló al cargar esta página. Probá de nuevo en unos minutos.",
+);
+
+useSeoMeta({
+  title: props.error.status === 404 ? "Página no encontrada" : "Error",
+});
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center gap-4 p-4">
-    <UPageCard class="w-full max-w-md">
-      <p>Error: {{ error.status }}</p>
-      <NuxtLink to="/">Volver a la página principal</NuxtLink>
-    </UPageCard>
-  </div>
+  <UApp :locale="es">
+    <UError
+      :error="{
+        status: error.status,
+        statusText:
+          error.status === 404 ? 'Página no encontrada' : 'Error inesperado',
+        message,
+      }"
+      :clear="{ label: 'Volver al inicio', icon: 'i-lucide-house' }"
+      class="min-h-screen"
+    />
+  </UApp>
 </template>

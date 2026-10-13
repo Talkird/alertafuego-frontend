@@ -33,7 +33,7 @@ const links = [
 const groups = computed(() => [
   {
     id: "links",
-    label: "Go to",
+    label: "Ir a",
     items: links.flat(),
   },
 ]);

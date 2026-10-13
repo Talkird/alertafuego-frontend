@@ -88,7 +88,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
         separator="o"
         title="Iniciar sesión"
         description="Podés iniciar sesión con Google o con tu correo electrónico."
-        :submit="{ label: 'Enviar enlace de acceso único' }"
+        :submit="{ label: 'Enviar enlace de acceso' }"
         @submit="onSubmit"
       />
 

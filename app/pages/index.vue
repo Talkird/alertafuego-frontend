@@ -38,19 +38,19 @@ const features = [
     icon: "i-lucide-brain-circuit",
     title: "Modelo de inteligencia artificial",
     description:
-      "Una red de segmentación, entrenada con los productos de incendios VIIRS como referencia, estima la probabilidad de fuego en cada píxel.",
-  },
-  {
-    icon: "i-lucide-shield-check",
-    title: "Cobertura nacional",
-    description:
-      "Las detecciones se limitan al polígono real del territorio argentino, lo que evita falsos positivos en países limítrofes.",
+      "Una red de segmentación, entrenada con los productos de incendios VIIRS como referencia, estima la probabilidad de fuego en cada píxel del territorio argentino.",
   },
   {
     icon: "i-lucide-map-pinned",
     title: "Mapa interactivo",
     description:
       "Los focos se visualizan sobre la cartografía del IGN y pueden filtrarse por fecha, probabilidad y cantidad de reportes.",
+  },
+  {
+    icon: "i-lucide-bell-ring",
+    title: "Alertas por zona",
+    description:
+      "Marcá un punto y un radio, por ejemplo tu campo o tu localidad, y recibí un email cuando se detecte un foco dentro de esa zona.",
   },
   {
     icon: "i-lucide-message-square-warning",
@@ -62,7 +62,7 @@ const features = [
     icon: "i-lucide-chart-column",
     title: "Panel de estadísticas",
     description:
-      "La evolución de las detecciones puede consultarse por día, semana, mes o año, junto con el detalle de cada registro.",
+      "La evolución de las detecciones por día, semana, mes o año, y su distribución por provincia, departamento y hora del día.",
   },
 ];
 
@@ -123,7 +123,7 @@ const metrics = [
       id="funcionalidades"
       headline="Funcionalidades"
       title="Información satelital al servicio de la prevención"
-      description="Detección automática, visualización geográfica y validación colaborativa, reunidas en una sola plataforma."
+      description="Detección automática, mapa, alertas por email y validación colaborativa, en una sola plataforma."
       class="scroll-mt-(--ui-header-height)"
     >
       <UPageGrid>
@@ -148,8 +148,10 @@ const metrics = [
     </UPageSection>
 
     <UPageSection
+      id="fuente-de-datos"
       headline="La fuente de datos"
       title="El satélite detrás del sistema"
+      class="scroll-mt-(--ui-header-height)"
       description="GOES-19 es el satélite geoestacionario operativo de la NOAA sobre el continente americano. Su posición fija sobre el ecuador permite observar la Argentina de forma ininterrumpida."
     >
       <UPageGrid class="lg:grid-cols-4">
@@ -168,11 +170,18 @@ const metrics = [
       </UPageGrid>
     </UPageSection>
 
-    <UPageSection>
+    <UPageSection :ui="{ container: 'py-0 sm:py-0 lg:py-0' }">
       <UPageCTA
-        title="¿Quiere saber dónde hay focos activos en el país?"
-        description="Ingrese con su cuenta de Google o mediante un enlace de acceso único para acceder al mapa y al panel de estadísticas."
-        :links="[{ label: 'Comenzar gratis', to: '/mapa', size: 'xl' }]"
+        title="¿Querés saber dónde hay focos activos en el país?"
+        description="Ingresá con tu cuenta de Google o con un enlace de acceso por email para ver el mapa, las estadísticas y configurar tus alertas."
+        :links="[
+          {
+            label: 'Ingresar al mapa',
+            to: '/mapa',
+            icon: 'i-lucide-map',
+            size: 'xl',
+          },
+        ]"
         variant="naked"
         :ui="{
           title: 'mx-auto max-w-xl text-balance',

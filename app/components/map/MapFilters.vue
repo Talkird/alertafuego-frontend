@@ -24,13 +24,13 @@ const maxReportsLabel = computed(() =>
         variant="ghost"
         icon="i-lucide-gauge"
         truncate
-        :label="`Confianza mínima: ${minConfidence}%`"
+        :label="`Probabilidad mínima: ${minConfidence}%`"
         class="w-60 justify-start tabular-nums data-[state=open]:bg-elevated"
       />
 
       <template #content>
         <div class="w-56 space-y-2 p-4">
-          <p class="text-xs text-muted">Confianza mínima</p>
+          <p class="text-xs text-muted">Probabilidad mínima</p>
           <USlider v-model="minConfidence" :min="0" :max="100" :step="5" />
         </div>
       </template>

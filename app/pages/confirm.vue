@@ -17,5 +17,11 @@ watch(
 </script>
 
 <template>
-  <div class="text-center">Esperando inicio de sesión...</div>
+  <div class="flex flex-col items-center gap-3 text-center">
+    <UIcon
+      name="i-lucide-loader-circle"
+      class="text-primary size-6 animate-spin"
+    />
+    <p class="text-muted text-sm">Iniciando sesión…</p>
+  </div>
 </template>

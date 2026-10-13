@@ -6,6 +6,7 @@ const user = useSupabaseUser();
 const items = [
   { label: "Funcionalidades", to: "#funcionalidades" },
   { label: "Cómo funciona", to: "#como-funciona" },
+  { label: "Fuente de datos", to: "#fuente-de-datos" },
 ] satisfies NavigationMenuItem[];
 
 const access = computed(() =>

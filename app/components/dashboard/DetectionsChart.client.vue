@@ -18,6 +18,7 @@ import {
   VisCrosshair,
   VisTooltip,
 } from "@unovis/vue";
+import { CurveType } from "@unovis/ts";
 import { useElementSize } from "@vueuse/core";
 import type { StoredDetection } from "~/types";
 import type { Period, Range } from "~/types";
@@ -114,7 +115,7 @@ const template = (d: DataRecord) =>
   >
     <template #header>
       <div>
-        <p class="text-xs text-muted uppercase mb-1.5">Focos detectados</p>
+        <p class="text-sm text-muted mb-1">Focos detectados</p>
         <p class="text-3xl text-highlighted font-semibold">{{ total }}</p>
       </div>
     </template>
@@ -126,10 +127,21 @@ const template = (d: DataRecord) =>
       class="h-96"
       :width="width"
     >
-      <VisLine :x="x" :y="y" color="var(--ui-primary)" />
-      <VisArea :x="x" :y="y" color="var(--ui-primary)" :opacity="0.1" />
+      <VisLine
+        :x="x"
+        :y="y"
+        color="var(--ui-primary)"
+        :curve-type="CurveType.Linear"
+      />
+      <VisArea
+        :x="x"
+        :y="y"
+        color="var(--ui-primary)"
+        :opacity="0.1"
+        :curve-type="CurveType.Linear"
+      />
 
-      <VisAxis type="x" :x="x" :tick-format="xTicks" />
+      <VisAxis type="x" :x="x" :tick-format="xTicks" :grid-line="false" />
 
       <VisCrosshair color="var(--ui-primary)" :template="template" />
 

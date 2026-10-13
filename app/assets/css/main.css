@@ -49,3 +49,30 @@ html.dark .leaflet-tile-pane {
   border: 1px solid var(--ui-border);
   box-shadow: none;
 }
+
+.leaflet-bar {
+  border: 1px solid var(--ui-border) !important;
+  border-radius: calc(var(--ui-radius) * 2) !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.leaflet-container .leaflet-bar a,
+.leaflet-container .leaflet-bar a:hover {
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  border-bottom-color: var(--ui-border);
+}
+
+.leaflet-container .leaflet-bar a:hover {
+  background: var(--ui-bg-elevated);
+}
+
+.leaflet-container .leaflet-control-attribution {
+  background: color-mix(in oklab, var(--ui-bg) 85%, transparent);
+  color: var(--ui-text-muted);
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: var(--ui-text-toned);
+}

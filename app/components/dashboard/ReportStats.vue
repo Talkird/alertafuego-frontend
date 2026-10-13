@@ -43,7 +43,7 @@ const maxCategory = computed(() => categories.value[0]?.count ?? 1);
 <template>
   <UCard>
     <template #header>
-      <p class="text-muted text-xs uppercase">Reportes de usuarios</p>
+      <p class="text-highlighted text-sm font-medium">Reportes de usuarios</p>
     </template>
 
     <p v-if="!total" class="text-muted text-sm">
@@ -73,7 +73,7 @@ const maxCategory = computed(() => categories.value[0]?.count ?? 1);
       </div>
 
       <div v-if="categories.length" class="space-y-2.5">
-        <p class="text-muted text-xs uppercase">Motivos de falso positivo</p>
+        <p class="text-muted text-sm">Motivos de falso positivo</p>
         <div v-for="item in categories" :key="item.category" class="space-y-1">
           <div class="flex items-baseline justify-between gap-3 text-sm">
             <span class="text-highlighted">
