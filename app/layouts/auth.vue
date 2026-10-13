@@ -1,6 +1,11 @@
 <template>
   <div class="grid min-h-screen lg:grid-cols-2">
-    <div class="flex flex-col p-6 sm:p-10">
+    <!-- Tinted column + raised card: the form reads as one contained unit.
+         In dark mode the column goes a step darker than the card (an
+         elevated card would match the border color and hide the dividers). -->
+    <div
+      class="bg-elevated/70 flex flex-col p-6 sm:p-10 dark:bg-(--ui-color-neutral-950)"
+    >
       <header class="flex items-center justify-between gap-4">
         <NuxtLink to="/" class="flex items-center gap-2">
           <img src="/icon.png" alt="" class="size-7" />
@@ -22,7 +27,9 @@
       </header>
 
       <main class="flex flex-1 items-center justify-center py-10">
-        <div class="w-full max-w-sm">
+        <div
+          class="bg-default ring-default w-full max-w-md rounded-xl p-6 shadow-sm ring sm:p-8"
+        >
           <slot />
         </div>
       </main>
