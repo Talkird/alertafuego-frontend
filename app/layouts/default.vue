@@ -13,9 +13,9 @@ const links = [
     },
   },
   {
-    label: "Dashboard",
-    icon: "i-lucide-layout-dashboard",
-    to: "/dashboard",
+    label: "Estadísticas",
+    icon: "i-lucide-chart-column",
+    to: "/estadisticas",
     onSelect: () => {
       open.value = false;
     },
@@ -33,7 +33,7 @@ const links = [
 const groups = computed(() => [
   {
     id: "links",
-    label: "Go to",
+    label: "Ir a",
     items: links.flat(),
   },
 ]);

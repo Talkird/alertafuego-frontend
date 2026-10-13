@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import type { Range, RegionKind } from "~/types";
-
-const props = defineProps<{
-  range: Range;
-}>();
+import type { RegionKind } from "~/types";
 
 const TOP = 10;
+const SKELETON_WIDTHS = [100, 72, 54, 38, 24];
 
 const kind = ref<RegionKind>("province");
 const kindOptions = [
@@ -13,13 +10,11 @@ const kindOptions = [
   { label: "Departamentos", value: "department" },
 ];
 
-const query = computed(() => ({
-  kind: kind.value,
-  since: props.range.start.toISOString(),
-  until: props.range.end.toISOString(),
-}));
+const { query: rangeQuery } = storeToRefs(useFiltersStore());
+const query = computed(() => ({ kind: kind.value, ...rangeQuery.value }));
 
-const { data: regions, status } = useRegionStats(query);
+const { data: regions, status, error } = useRegionStats(query);
+useFetchErrorToast(error, "No se pudieron cargar las estadísticas");
 
 const top = computed(() => (regions.value ?? []).slice(0, TOP));
 const max = computed(() => top.value[0]?.detection_count ?? 1);
@@ -29,14 +24,24 @@ const max = computed(() => top.value[0]?.detection_count ?? 1);
   <UCard>
     <template #header>
       <div class="flex items-center justify-between gap-3">
-        <p class="text-muted text-xs uppercase">Focos por región</p>
+        <p class="text-highlighted text-sm font-medium">Focos por región</p>
         <USelect v-model="kind" :items="kindOptions" size="xs" class="w-36" />
       </div>
     </template>
 
-    <p v-if="status === 'pending' && !top.length" class="text-muted text-sm">
-      Cargando…
-    </p>
+    <!-- Ranked-bar placeholders, like the list they stand in for. -->
+    <div v-if="status === 'pending'">
+      <p class="sr-only" aria-live="polite">Cargando focos por región…</p>
+      <ol aria-hidden="true" class="space-y-2.5">
+        <li v-for="width in SKELETON_WIDTHS" :key="width" class="space-y-1">
+          <div class="flex items-center justify-between gap-3 py-0.5">
+            <USkeleton class="h-4 w-28" />
+            <USkeleton class="h-4 w-6" />
+          </div>
+          <USkeleton class="h-2" :style="{ width: `${width}%` }" />
+        </li>
+      </ol>
+    </div>
     <p v-else-if="!top.length" class="text-muted text-sm">
       Sin focos en este período.
     </p>

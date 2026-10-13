@@ -6,7 +6,26 @@
 }
 
 @theme {
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+/* Tailwind v4's preflight dropped v3's `cursor: pointer` on buttons, and
+ * Nuxt UI doesn't add it, so every <button> (UButton, tabs, switches, select
+ * triggers, calendar days, radios) showed the arrow while links showed the
+ * hand. Restore the hand for everything clickable. In the base layer, so a
+ * utility like `cursor-grab` still wins; disabled controls keep Nuxt UI's
+ * `cursor-not-allowed`. */
+@layer base {
+  button:not(:disabled):not([aria-disabled="true"]),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="menuitem"]:not([data-disabled]),
+  [role="menuitemcheckbox"]:not([data-disabled]),
+  [role="menuitemradio"]:not([data-disabled]),
+  [role="option"]:not([data-disabled]),
+  [role="radiogroup"] label {
+    cursor: pointer;
+  }
 }
 
 /* Leaflet maps (mapa.vue, alertas.vue) */
@@ -19,14 +38,21 @@
  * pane for the rest of the SPA session once the dashboard has been
  * visited. Tiles have `pointer-events: none` in Leaflet's own CSS, so
  * markers stay clickable through the now-higher tiles while being
- * completely hidden behind them. Upstream bug, unfixed as of writing:
- * https://github.com/f5/unovis/issues/554
+ * completely hidden behind them. The same copy also sets the control
+ * corners (`.leaflet-top, .leaflet-bottom`) to `z-index: 1`, hiding the zoom
+ * control and attribution behind the tiles the same way. Upstream bug,
+ * unfixed as of writing: https://github.com/f5/unovis/issues/554
  */
 .leaflet-overlay-pane {
   z-index: 400 !important;
 }
 
-html.dark .leaflet-tile-pane {
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1000 !important;
+}
+
+html.dark .af-tiles-ign {
   filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
 }
 
@@ -48,4 +74,48 @@ html.dark .leaflet-tile-pane {
   background: var(--ui-bg);
   border: 1px solid var(--ui-border);
   box-shadow: none;
+}
+
+.leaflet-bar {
+  border: 1px solid var(--ui-border) !important;
+  border-radius: calc(var(--ui-radius) * 2) !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.leaflet-container .leaflet-bar a,
+.leaflet-container .leaflet-bar a:hover {
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  border-bottom-color: var(--ui-border);
+}
+
+.leaflet-container .leaflet-bar a:hover {
+  background: var(--ui-bg-elevated);
+}
+
+/* Zoom buttons at the min/max zoom: Leaflet hard-codes a light gray
+ * (#f4f4f4), which glares in dark mode. */
+.leaflet-container .leaflet-bar a.leaflet-disabled,
+.leaflet-container .leaflet-bar a.leaflet-disabled:hover {
+  background: var(--ui-bg-elevated);
+  color: var(--ui-text-dimmed);
+  cursor: not-allowed;
+}
+
+.leaflet-container .leaflet-control-attribution {
+  background: color-mix(in oklab, var(--ui-bg) 85%, transparent) !important;
+  color: var(--ui-text-muted);
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: var(--ui-text-toned);
+}
+
+/* Alertas, desktop: placing a zone's center. Set on the map's wrapper
+ * (LMap doesn't keep a reactive class on the Leaflet container), and beats
+ * Leaflet's own `.leaflet-grab` cursor. */
+[data-picking] .leaflet-container,
+[data-picking] .leaflet-interactive {
+  cursor: crosshair;
 }

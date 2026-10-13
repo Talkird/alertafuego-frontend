@@ -10,6 +10,7 @@ import {
   startOfYear,
   format,
 } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   VisXYContainer,
   VisLine,
@@ -18,9 +19,9 @@ import {
   VisCrosshair,
   VisTooltip,
 } from "@unovis/vue";
+import { CurveType } from "@unovis/ts";
 import { useElementSize } from "@vueuse/core";
-import type { StoredDetection } from "~/types";
-import type { Period, Range } from "~/types";
+import type { Period, Range, StoredDetection } from "~/types";
 
 const cardRef = useTemplateRef<HTMLElement | null>("cardRef");
 
@@ -28,6 +29,9 @@ const props = defineProps<{
   detections: StoredDetection[];
   period: Period;
   range: Range;
+  /** First load or a new range: the data isn't there yet. Without this the card
+   * showed "0" and a flat line, as if the period had no fires. */
+  loading?: boolean;
 }>();
 
 type DataRecord = {
@@ -36,6 +40,12 @@ type DataRecord = {
 };
 
 const { width } = useElementSize(cardRef);
+
+// Fixed (not random) so the placeholder doesn't change on every load.
+const SKELETON_BARS = [
+  22, 30, 18, 36, 48, 34, 26, 40, 58, 44, 30, 26, 36, 52, 70, 56, 40, 32, 28,
+  44, 62, 48, 36, 30, 24, 38, 50, 42, 28, 20,
+];
 
 type BucketConfig = {
   each: (range: Range) => Date[];
@@ -77,7 +87,7 @@ const data = computed<DataRecord[]>(() => {
 
   const counts = new Map<string, number>();
   for (const detection of props.detections) {
-    const bucketKey = format(startOf(new Date(detection.image_time)), key);
+    const bucketKey = format(startOf(parseUtc(detection.image_time)), key);
     counts.set(bucketKey, (counts.get(bucketKey) ?? 0) + 1);
   }
 
@@ -93,7 +103,7 @@ const y = (d: DataRecord) => d.count;
 const total = computed(() => props.detections.length);
 
 const formatDate = (date: Date): string =>
-  format(date, bucketConfig[props.period].label);
+  format(date, bucketConfig[props.period].label, { locale: es });
 
 const xTicks = (i: number) => {
   if (i === 0 || i === data.value.length - 1 || !data.value[i]) {
@@ -113,23 +123,65 @@ const template = (d: DataRecord) =>
     :ui="{ root: 'overflow-visible', body: 'px-0! pt-0! pb-3!' }"
   >
     <template #header>
-      <div>
-        <p class="text-xs text-muted uppercase mb-1.5">Focos detectados</p>
-        <p class="text-3xl text-highlighted font-semibold">{{ total }}</p>
+      <div :aria-busy="loading">
+        <p class="text-muted mb-1 text-sm">Focos detectados</p>
+        <!-- Same box as the number (text-3xl: 36px line), so nothing moves when
+             it arrives. Skeletons are hidden from assistive tech: each one
+             announces an English "loading"; the sr-only line says it once. -->
+        <USkeleton v-if="loading" aria-hidden="true" class="h-9 w-16" />
+        <p v-else class="text-highlighted text-3xl font-semibold">
+          {{ total }}
+        </p>
+        <p v-if="loading" class="sr-only" aria-live="polite">
+          Cargando focos detectados…
+        </p>
       </div>
     </template>
 
+    <!-- Chart-shaped placeholder at the chart's exact height (h-72): bars on a
+         baseline and axis labels, so it reads as "a chart is loading" rather
+         than an empty box. -->
+    <div
+      v-if="loading"
+      aria-hidden="true"
+      class="flex h-72 flex-col px-4 pt-10 pb-3 sm:px-6"
+    >
+      <div class="border-default flex flex-1 items-end gap-1 border-b">
+        <USkeleton
+          v-for="(height, i) in SKELETON_BARS"
+          :key="i"
+          class="flex-1 rounded-b-none"
+          :style="{ height: `${height}%` }"
+        />
+      </div>
+      <div class="flex justify-around pt-3">
+        <USkeleton v-for="i in 5" :key="i" class="h-3 w-10" />
+      </div>
+    </div>
+
     <VisXYContainer
+      v-else
       :data="data"
       :padding="{ top: 40 }"
       :margin="{ left: -5, right: -5 }"
-      class="h-96"
+      class="h-72"
       :width="width"
     >
-      <VisLine :x="x" :y="y" color="var(--ui-primary)" />
-      <VisArea :x="x" :y="y" color="var(--ui-primary)" :opacity="0.1" />
+      <VisLine
+        :x="x"
+        :y="y"
+        color="var(--ui-primary)"
+        :curve-type="CurveType.Linear"
+      />
+      <VisArea
+        :x="x"
+        :y="y"
+        color="var(--ui-primary)"
+        :opacity="0.1"
+        :curve-type="CurveType.Linear"
+      />
 
-      <VisAxis type="x" :x="x" :tick-format="xTicks" />
+      <VisAxis type="x" :x="x" :tick-format="xTicks" :grid-line="false" />
 
       <VisCrosshair color="var(--ui-primary)" :template="template" />
 

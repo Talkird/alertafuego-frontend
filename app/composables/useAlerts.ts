@@ -5,16 +5,8 @@ import type {
   AlertAreaUpdate,
 } from "~/types";
 
-function authOptions(accessToken: string) {
-  const config = useRuntimeConfig();
-  return {
-    baseURL: config.public.apiBase,
-    headers: { Authorization: `Bearer ${accessToken}` },
-  };
-}
-
 export async function fetchAlertAreas(accessToken: string) {
-  return $fetch<AlertArea[]>("/alert-areas", authOptions(accessToken));
+  return $fetch<AlertArea[]>("/alert-areas", authFetchOptions(accessToken));
 }
 
 export async function createAlertArea(
@@ -22,7 +14,7 @@ export async function createAlertArea(
   accessToken: string,
 ) {
   return $fetch<AlertArea>("/alert-areas", {
-    ...authOptions(accessToken),
+    ...authFetchOptions(accessToken),
     method: "POST",
     body: payload,
   });
@@ -34,7 +26,7 @@ export async function updateAlertArea(
   accessToken: string,
 ) {
   return $fetch<AlertArea>(`/alert-areas/${id}`, {
-    ...authOptions(accessToken),
+    ...authFetchOptions(accessToken),
     method: "PATCH",
     body: payload,
   });
@@ -42,11 +34,11 @@ export async function updateAlertArea(
 
 export async function deleteAlertArea(id: number, accessToken: string) {
   return $fetch(`/alert-areas/${id}`, {
-    ...authOptions(accessToken),
+    ...authFetchOptions(accessToken),
     method: "DELETE",
   });
 }
 
 export async function fetchAlerts(accessToken: string) {
-  return $fetch<Alert[]>("/alerts", authOptions(accessToken));
+  return $fetch<Alert[]>("/alerts", authFetchOptions(accessToken));
 }

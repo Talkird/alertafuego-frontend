@@ -44,6 +44,12 @@ function openForm() {
   showForm.value = true;
 }
 
+// The loaded list, once there is one: detection.report_count is from when the
+// map loaded, so it stayed at 0 after the user's own report.
+const reportCount = computed(() =>
+  loadingReports.value ? props.detection.report_count : reports.value.length,
+);
+
 async function loadReports() {
   loadingReports.value = true;
   try {
@@ -81,7 +87,11 @@ function formatFecha(iso: string): string {
 }
 
 function formatHora(iso: string): string {
-  return toLocalDate(iso).toLocaleTimeString("es-AR", { hour12: false });
+  return toLocalDate(iso).toLocaleTimeString("es-AR", {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 async function submitReport() {
@@ -122,7 +132,8 @@ async function submitReport() {
     });
     showForm.value = false;
     await loadReports();
-  } catch {
+  } catch (error) {
+    if (isUnauthorized(error)) return;
     toast.add({
       title: "No se pudo enviar el reporte",
       color: "error",
@@ -136,18 +147,29 @@ async function submitReport() {
 <template>
   <div class="min-w-56 space-y-3 p-0.5">
     <div class="flex items-center justify-between gap-3">
-      <span class="text-muted text-xs font-medium uppercase">Probabilidad</span>
-      <UBadge variant="subtle">
+      <span class="text-highlighted text-sm font-medium">
+        Probabilidad de fuego
+      </span>
+      <UBadge variant="subtle" class="tabular-nums">
         {{ (detection.probability * 100).toFixed(1) }}%
       </UBadge>
     </div>
 
-    <p class="text-highlighted text-sm">
-      Fecha: {{ formatFecha(detection.detected_at) }}
-    </p>
-    <p class="text-highlighted text-sm">
-      Hora: {{ formatHora(detection.detected_at) }}
-    </p>
+    <dl class="space-y-1 text-sm">
+      <div class="flex flex-wrap justify-between gap-x-3">
+        <dt class="text-muted">Imagen satelital</dt>
+        <dd class="text-highlighted tabular-nums">
+          {{ formatFecha(detection.image_time) }},
+          {{ formatHora(detection.image_time) }}
+        </dd>
+      </div>
+      <div class="flex flex-wrap justify-between gap-x-3">
+        <dt class="text-muted">Ubicación</dt>
+        <dd class="text-highlighted font-mono text-xs leading-5">
+          {{ detection.lat.toFixed(4) }}, {{ detection.lon.toFixed(4) }}
+        </dd>
+      </div>
+    </dl>
 
     <UButton
       v-if="detection.has_image"
@@ -172,8 +194,8 @@ async function submitReport() {
     </UModal>
 
     <div class="border-default border-t pt-2">
-      <p class="text-muted mb-1.5 text-xs font-medium uppercase">
-        Reportes ({{ detection.report_count }})
+      <p class="text-highlighted mb-1.5 text-sm font-medium">
+        Reportes ({{ reportCount }})
       </p>
 
       <p v-if="loadingReports" class="text-muted text-xs">Cargando…</p>

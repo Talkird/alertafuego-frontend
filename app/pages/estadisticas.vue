@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { sub } from "date-fns";
 import type { TableColumn } from "@nuxt/ui";
 import type { Column, Row } from "@tanstack/vue-table";
 import { getPaginationRowModel } from "@tanstack/table-core";
-import type { StoredDetection, Period, Range } from "~/types";
+import type { StoredDetection, Period } from "~/types";
 
 useSeoMeta({
-  title: "Dashboard",
+  title: "Estadísticas",
   description:
     "Estadísticas históricas de focos de incendio detectados en Argentina, filtrables por fecha y período.",
 });
@@ -15,19 +14,41 @@ const UBadge = resolveComponent("UBadge");
 const UButton = resolveComponent("UButton");
 const UDropdownMenu = resolveComponent("UDropdownMenu");
 
-const range = shallowRef<Range>({
-  start: sub(new Date(), { days: 30 }),
-  end: new Date(),
-});
+const { range, query } = storeToRefs(useFiltersStore());
 const period = ref<Period>("daily");
 
-const query = computed(() => ({
-  since: range.value.start.toISOString(),
-  until: range.value.end.toISOString(),
-}));
+// The total and the daily chart count these rows, so ask for the API's maximum
+// rather than the default 500.
+const DETECTIONS_LIMIT = 5000;
+const {
+  data: detections,
+  status: detectionsStatus,
+  error: detectionsError,
+} = useDetections(
+  computed(() => ({ ...query.value, limit: DETECTIONS_LIMIT })),
+);
+const {
+  data: hours,
+  status: hoursStatus,
+  error: hoursError,
+} = useHourlyStats(query);
+useFetchErrorToast(
+  computed(() => detectionsError.value ?? hoursError.value),
+  "No se pudieron cargar las estadísticas",
+);
 
-const { data: detections } = useDetections(query);
-const { data: hours } = useHourlyStats(query);
+const route = useRoute();
+
+// The region and report cards fetch their own data, so refresh by key: the
+// keys set in useDetections and useStats.
+function refresh() {
+  return refreshNuxtData([
+    `detections:${route.path}`,
+    "stats:hourly",
+    "stats:regions",
+    "stats:reports",
+  ]);
+}
 
 function confidenceColor(probability: number): "error" | "warning" | "neutral" {
   if (probability >= 0.8) return "error";
@@ -93,7 +114,7 @@ function getRowItems(row: Row<StoredDetection>) {
   return [
     {
       label: "Ver en Google Maps",
-      icon: "i-lucide-map-pin",
+      icon: "i-lucide-external-link",
       onSelect() {
         window.open(`https://www.google.com/maps?q=${lat},${lon}`, "_blank");
       },
@@ -110,7 +131,11 @@ const columns: TableColumn<StoredDetection>[] = [
     id: "location",
     header: "Ubicación",
     cell: ({ row }) =>
-      `${row.original.lat.toFixed(4)}, ${row.original.lon.toFixed(4)}`,
+      h(
+        "span",
+        { class: "font-mono text-xs" },
+        `${row.original.lat.toFixed(4)}, ${row.original.lon.toFixed(4)}`,
+      ),
   },
   {
     accessorKey: "probability",
@@ -130,14 +155,14 @@ const columns: TableColumn<StoredDetection>[] = [
     header: ({ column }) => getHeader(column, "Reportes"),
   },
   {
-    accessorKey: "detected_at",
-    header: "Detectado",
-    cell: ({ row }) => formatDate(row.original.detected_at),
+    accessorKey: "image_time",
+    header: "Imagen satelital",
+    cell: ({ row }) => formatDate(row.original.image_time),
   },
   {
-    accessorKey: "image_time",
-    header: "Imagen",
-    cell: ({ row }) => formatDate(row.original.image_time),
+    accessorKey: "detected_at",
+    header: "Procesada",
+    cell: ({ row }) => formatDate(row.original.detected_at),
   },
   {
     id: "actions",
@@ -178,7 +203,7 @@ const sorting = ref([]);
 <template>
   <UDashboardPanel id="dashboard">
     <template #header>
-      <UDashboardNavbar title="Dashboard">
+      <UDashboardNavbar title="Estadísticas">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
@@ -189,6 +214,24 @@ const sorting = ref([]);
           <DashboardDateRangePicker v-model="range" class="-ms-1" />
           <DashboardPeriodSelect v-model="period" :range="range" />
         </template>
+
+        <template #right>
+          <DashboardExportMenu
+            :detections="detections ?? []"
+            :range="range"
+            :limit="DETECTIONS_LIMIT"
+          />
+          <UTooltip text="Actualizar">
+            <UButton
+              color="primary"
+              variant="subtle"
+              icon="i-lucide-refresh-cw"
+              aria-label="Actualizar"
+              loading-auto
+              @click="refresh()"
+            />
+          </UTooltip>
+        </template>
       </UDashboardToolbar>
     </template>
 
@@ -197,13 +240,17 @@ const sorting = ref([]);
         :detections="detections ?? []"
         :period="period"
         :range="range"
+        :loading="detectionsStatus === 'pending'"
       />
 
-      <DashboardHourlyChart :hours="hours ?? []" />
+      <DashboardHourlyChart
+        :hours="hours ?? []"
+        :loading="hoursStatus === 'pending'"
+      />
 
       <div class="grid shrink-0 gap-4 lg:grid-cols-2">
-        <DashboardRegionStats :range="range" />
-        <DashboardReportStats :range="range" />
+        <DashboardRegionStats />
+        <DashboardReportStats />
       </div>
 
       <UTable
@@ -212,6 +259,7 @@ const sorting = ref([]);
         v-model:pagination="pagination"
         :data="detections ?? []"
         :columns="columns"
+        :loading="detectionsStatus === 'pending'"
         :pagination-options="{
           getPaginationRowModel: getPaginationRowModel(),
         }"
@@ -223,8 +271,31 @@ const sorting = ref([]);
           th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
           td: 'border-b border-default',
           separator: 'h-0',
+          loading: 'p-0',
         }"
-      />
+      >
+        <!-- One page of placeholder rows at the real row height (65px), so the
+             table doesn't grow from an empty "no data" row and push the page
+             down when the detections arrive. -->
+        <template #loading>
+          <p class="sr-only" aria-live="polite">Cargando detecciones…</p>
+          <div aria-hidden="true" class="divide-default divide-y">
+            <div
+              v-for="i in pagination.pageSize"
+              :key="i"
+              class="flex h-[65px] items-center gap-6 px-4"
+            >
+              <USkeleton class="h-4 w-8" />
+              <USkeleton class="h-4 w-36" />
+              <USkeleton class="h-5 w-14 rounded-full" />
+              <USkeleton class="h-4 w-6" />
+              <USkeleton class="h-4 w-36" />
+              <USkeleton class="h-4 w-36" />
+              <USkeleton class="ms-auto h-4 w-4" />
+            </div>
+          </div>
+        </template>
+      </UTable>
 
       <div class="flex justify-end">
         <UPagination

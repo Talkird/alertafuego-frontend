@@ -8,15 +8,22 @@ defineProps<{
   collapsed?: boolean;
 }>();
 
+const toast = useToast();
+
+// No confirmation: signing out loses nothing and is undone by signing back in.
 async function signOut() {
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    console.error("Error signing out:", error.message);
-  } else {
-    console.log("Signed out successfully");
-    navigateTo("/login");
+    toast.add({
+      title: "No se pudo cerrar la sesión",
+      description: error.message,
+      color: "error",
+    });
+    return;
   }
+  toast.add({ title: "Sesión cerrada", color: "success" });
+  navigateTo("/login");
 }
 
 const colorMode = useColorMode();
@@ -40,11 +47,10 @@ const items = computed<DropdownMenuItem[][]>(() => [
   ],
   [
     {
-      label: "Configuración",
-      icon: "i-lucide-settings",
+      label: "Mi cuenta",
+      icon: "i-lucide-user-cog",
+      to: "/cuenta",
     },
-  ],
-  [
     {
       label: "Apariencia",
       icon: "i-lucide-sun-moon",

@@ -24,15 +24,32 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: "/login",
       callback: "/confirm",
-      exclude: ["/"],
+      exclude: ["/", "/confirmar-email"],
     },
   },
 
   runtimeConfig: {
     public: {
       apiBase,
+      // Optional: enables the weather layers on the maps. Set with
+      // NUXT_PUBLIC_OWM_API_KEY (free key from openweathermap.org).
+      owmApiKey: "",
     },
   },
 
   css: ["~/assets/css/main.css"],
+
+  // Pages behind login render in the browser only. The site is deployed with
+  // `nuxt generate`, and pre-rendering these pages ran the auth redirect with
+  // no session at build time, baking a redirect to /login into their HTML -
+  // so reloading any of them logged the user out. Client-rendered, the
+  // redirect check runs in the browser, where the session cookie is.
+  routeRules: {
+    "/mapa": { ssr: false },
+    "/estadisticas": { ssr: false },
+    // Old name of the statistics page.
+    "/dashboard": { redirect: "/estadisticas" },
+    "/alertas": { ssr: false },
+    "/cuenta": { ssr: false },
+  },
 });
