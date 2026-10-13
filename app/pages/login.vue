@@ -6,11 +6,18 @@ definePageMeta({
   layout: "auth",
 });
 
+useSeoMeta({
+  title: "Ingresar",
+  description:
+    "Ingresá a AlertaFuego con Google o con un enlace de acceso por email.",
+});
+
 const supabase = useSupabaseClient();
 const toast = useToast();
 
 const loading = ref(false);
-const sent = ref(false);
+// The address the link was sent to, once sent.
+const sentTo = ref<string | null>(null);
 
 const fields: AuthFormField[] = [
   {
@@ -18,13 +25,12 @@ const fields: AuthFormField[] = [
     type: "email",
     label: "Correo electrónico",
     placeholder: "tucorreo@ejemplo.com",
-    required: true,
   },
 ];
 
 const providers = [
   {
-    label: "Google",
+    label: "Continuar con Google",
     icon: "i-simple-icons-google",
     onClick: async () => {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -72,34 +78,47 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
     return;
   }
 
-  sent.value = true;
+  sentTo.value = payload.data.email;
 }
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center gap-4 p-4">
-    <UPageCard class="w-full max-w-md">
-      <UAuthForm
-        v-if="!sent"
-        :schema="schema"
-        :fields="fields"
-        :providers="providers"
-        :loading="loading"
-        separator="o"
-        title="Iniciar sesión"
-        description="Podés iniciar sesión con Google o con tu correo electrónico."
-        :submit="{ label: 'Enviar enlace de acceso' }"
-        @submit="onSubmit"
-      />
+  <UAuthForm
+    v-if="!sentTo"
+    :schema="schema"
+    :fields="fields"
+    :providers="providers"
+    :loading="loading"
+    separator="o"
+    title="Ingresá a AlertaFuego"
+    description="Sin contraseña. Si es tu primera vez, la cuenta se crea al ingresar."
+    :submit="{ label: 'Enviarme un enlace de acceso' }"
+    :ui="{ header: 'text-left', title: 'text-2xl' }"
+    @submit="onSubmit"
+  />
 
-      <UAlert
-        v-else
-        icon="i-lucide-mail-check"
-        color="success"
+  <div v-else class="space-y-6">
+    <UIcon name="i-lucide-mail-check" class="text-primary size-8" />
+    <div>
+      <h1 class="text-highlighted text-2xl font-semibold">Revisá tu correo</h1>
+      <p class="text-muted mt-1">
+        Te enviamos un enlace de acceso a
+        <span class="text-highlighted font-medium">{{ sentTo }}</span
+        >. Abrilo desde este dispositivo para ingresar.
+      </p>
+    </div>
+    <div class="space-y-2">
+      <p class="text-muted text-sm">
+        ¿No llegó? Puede tardar un minuto; revisá también la carpeta de spam.
+      </p>
+      <UButton
+        color="neutral"
         variant="subtle"
-        title="Revisá tu correo"
-        description="Te enviamos un enlace de acceso. Abrilo desde este dispositivo para iniciar sesión."
-      />
-    </UPageCard>
+        icon="i-lucide-arrow-left"
+        @click="sentTo = null"
+      >
+        Usar otro correo
+      </UButton>
+    </div>
   </div>
 </template>
