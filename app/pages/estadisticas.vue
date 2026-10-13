@@ -20,7 +20,11 @@ const period = ref<Period>("daily");
 // The total and the daily chart count these rows, so ask for the API's maximum
 // rather than the default 500.
 const DETECTIONS_LIMIT = 5000;
-const { data: detections, error: detectionsError } = useDetections(
+const {
+  data: detections,
+  status: detectionsStatus,
+  error: detectionsError,
+} = useDetections(
   computed(() => ({ ...query.value, limit: DETECTIONS_LIMIT })),
 );
 const { data: hours, error: hoursError } = useHourlyStats(query);
@@ -232,6 +236,7 @@ const sorting = ref([]);
         :detections="detections ?? []"
         :period="period"
         :range="range"
+        :loading="detectionsStatus === 'pending'"
       />
 
       <DashboardHourlyChart :hours="hours ?? []" />

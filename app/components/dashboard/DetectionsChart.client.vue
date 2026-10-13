@@ -29,6 +29,9 @@ const props = defineProps<{
   detections: StoredDetection[];
   period: Period;
   range: Range;
+  /** First load or a new range: the data isn't there yet. Without this the card
+   * showed "0" and a flat line, as if the period had no fires. */
+  loading?: boolean;
 }>();
 
 type DataRecord = {
@@ -114,13 +117,28 @@ const template = (d: DataRecord) =>
     :ui="{ root: 'overflow-visible', body: 'px-0! pt-0! pb-3!' }"
   >
     <template #header>
-      <div>
-        <p class="text-sm text-muted mb-1">Focos detectados</p>
-        <p class="text-3xl text-highlighted font-semibold">{{ total }}</p>
+      <div :aria-busy="loading">
+        <p class="text-muted mb-1 text-sm">Focos detectados</p>
+        <!-- Same box as the number (text-3xl: 36px line), so nothing moves when
+             it arrives. Skeletons are hidden from assistive tech: each one
+             announces an English "loading"; the sr-only line says it once. -->
+        <USkeleton v-if="loading" aria-hidden="true" class="h-9 w-16" />
+        <p v-else class="text-highlighted text-3xl font-semibold">
+          {{ total }}
+        </p>
+        <p v-if="loading" class="sr-only" aria-live="polite">
+          Cargando focos detectados…
+        </p>
       </div>
     </template>
 
+    <!-- Chart placeholder at the chart's exact height (h-72). -->
+    <div v-if="loading" aria-hidden="true" class="h-72 px-4 pt-10 pb-6 sm:px-6">
+      <USkeleton class="size-full" />
+    </div>
+
     <VisXYContainer
+      v-else
       :data="data"
       :padding="{ top: 40 }"
       :margin="{ left: -5, right: -5 }"
