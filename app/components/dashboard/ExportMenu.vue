@@ -11,9 +11,15 @@ const props = defineProps<{
 
 const toast = useToast();
 
-function exportAs(kind: "csv" | "geojson") {
+async function exportAs(kind: "xlsx" | "csv" | "geojson") {
   const list = props.detections;
-  if (kind === "csv") {
+  if (kind === "xlsx") {
+    downloadFile(
+      exportFileName(props.range, "xlsx"),
+      await detectionsToXlsx(list),
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+  } else if (kind === "csv") {
     downloadFile(
       exportFileName(props.range, "csv"),
       detectionsToCsv(list),
@@ -38,8 +44,13 @@ function exportAs(kind: "csv" | "geojson") {
 
 const items = computed<DropdownMenuItem[]>(() => [
   {
-    label: "CSV para Excel",
+    label: "Excel (.xlsx)",
     icon: "i-lucide-file-spreadsheet",
+    onSelect: () => exportAs("xlsx"),
+  },
+  {
+    label: "CSV",
+    icon: "i-lucide-file-text",
     onSelect: () => exportAs("csv"),
   },
   {

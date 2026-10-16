@@ -31,6 +31,8 @@ const owmApiKey = useRuntimeConfig().public.owmApiKey;
     no-wrap
   />
 
+  <!-- z-index keeps the overlay above the base layer, which is re-added (on
+       top, by default) whenever the user switches between map and satellite. -->
   <LTileLayer
     v-if="weather && owmApiKey"
     :key="weather"
@@ -38,5 +40,6 @@ const owmApiKey = useRuntimeConfig().public.owmApiKey;
     attribution='Clima &amp;copy; <a href="https://openweathermap.org/">OpenWeatherMap</a>'
     layer-type="overlay"
     :opacity="0.75"
+    :z-index="10"
   />
 </template>
