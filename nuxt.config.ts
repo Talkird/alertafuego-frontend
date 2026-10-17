@@ -18,6 +18,8 @@ export default defineNuxtConfig({
 
   site: {
     name: "AlertaFuego",
+    // The canonical URL for the sitemap, robots and social/SEO tags.
+    url: "https://alertafuego.com.ar",
   },
 
   supabase: {

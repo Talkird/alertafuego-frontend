@@ -6,9 +6,9 @@ S3 (private, static build output) + CloudFront (CDN, HTTPS, SPA fallback routing
 
 `alertafuego.com.ar` is registered at NIC Argentina, which keeps the registration (Route 53 can't register `.ar` domains); its DNS is delegated to the Route 53 zone. Set up in two phases, because the certificate can only validate once NIC.ar points at the zone:
 
-1. **Zone and certificate request** (`domain_delegated = false`, the default). Applying creates the zone and prints its name servers (`name_servers` output, also at the end of the Terraform Deploy run's log, or in Route 53 → Hosted zones). The site is unchanged.
+1. **Zone and certificate request** (`domain_delegated = false`). Applying creates the zone and prints its name servers (`name_servers` output, also at the end of the Terraform Deploy run's log, or in Route 53 → Hosted zones). The site is unchanged.
 2. **Delegate at NIC.ar.** In nic.ar → the domain → *Delegar*, enter the four name servers (no trailing dot). Wait until they're live: `dig NS alertafuego.com.ar +short` returns them (minutes to a few hours).
-3. **Serve the site on the domain.** Set `domain_delegated` to `true` in `variables.tf` and merge. The apply waits for the certificate, adds the domain to CloudFront and creates the `A`/`AAAA` records for `alertafuego.com.ar` and `www`.
+3. **Serve the site on the domain** (`domain_delegated = true`, the default now that it's delegated). The apply waits for the certificate, adds the domain to CloudFront and creates the `A`/`AAAA` records for `alertafuego.com.ar` and `www`.
 
 Then update everything that knows the site's URL: Supabase (Authentication → URL Configuration: Site URL and `https://alertafuego.com.ar/confirm` in Redirect URLs) and the backend's `FRONTEND_ORIGINS`/`FRONTEND_URL` GitHub variables.
 
