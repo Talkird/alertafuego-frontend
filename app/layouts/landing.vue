@@ -8,6 +8,7 @@ const sections = [
   { label: "Funcionalidades", id: "funcionalidades" },
   { label: "Cómo funciona", id: "como-funciona" },
   { label: "Fuente de datos", id: "fuente-de-datos" },
+  { label: "Planes", id: "planes" },
 ];
 
 // Smooth scrolling for the in-page links, only on the landing (the app pages
