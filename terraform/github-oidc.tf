@@ -119,6 +119,16 @@ data "aws_iam_policy_document" "github_actions_permissions" {
   }
 
   statement {
+    # The custom domain's DNS zone and its CloudFront certificate (domain.tf).
+    # Route 53 scopes few actions per zone and ACM requests aren't scopable
+    # at all, so these follow the CloudFront statement above.
+    sid       = "ManageDomain"
+    effect    = "Allow"
+    actions   = ["route53:*", "acm:*"]
+    resources = ["*"]
+  }
+
+  statement {
     # This role manages its own IAM role/policy via Terraform - scoped
     # tightly to resources matching this project's naming convention to
     # avoid a broader self-service-IAM blast radius.

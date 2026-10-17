@@ -1,6 +1,16 @@
 # Infrastructure
 
-S3 (private, static build output) + CloudFront (CDN, HTTPS, SPA fallback routing) for the frontend. No custom domain is configured — the site is served from CloudFront's default `*.cloudfront.net` domain. To add one later: request an ACM certificate **in `us-east-1`** (CloudFront requirement regardless of where the bucket lives), add it plus `aliases` to the `viewer_certificate`/distribution block in `cloudfront.tf`, and point your DNS at the distribution.
+S3 (private, static build output) + CloudFront (CDN, HTTPS, SPA fallback routing) for the frontend, served on `alertafuego.com.ar` (and `www.`) through a Route 53 zone and an ACM certificate (`domain.tf`).
+
+## Custom domain
+
+`alertafuego.com.ar` is registered at NIC Argentina, which keeps the registration (Route 53 can't register `.ar` domains); its DNS is delegated to the Route 53 zone. Set up in two phases, because the certificate can only validate once NIC.ar points at the zone:
+
+1. **Zone and certificate request** (`domain_delegated = false`, the default). Applying creates the zone and prints its name servers (`name_servers` output, also at the end of the Terraform Deploy run's log, or in Route 53 → Hosted zones). The site is unchanged.
+2. **Delegate at NIC.ar.** In nic.ar → the domain → *Delegar*, enter the four name servers (no trailing dot). Wait until they're live: `dig NS alertafuego.com.ar +short` returns them (minutes to a few hours).
+3. **Serve the site on the domain.** Set `domain_delegated` to `true` in `variables.tf` and merge. The apply waits for the certificate, adds the domain to CloudFront and creates the `A`/`AAAA` records for `alertafuego.com.ar` and `www`.
+
+Then update everything that knows the site's URL: Supabase (Authentication → URL Configuration: Site URL and `https://alertafuego.com.ar/confirm` in Redirect URLs) and the backend's `FRONTEND_ORIGINS`/`FRONTEND_URL` GitHub variables.
 
 ## First-time setup
 
@@ -46,7 +56,7 @@ aws cloudfront create-invalidation \
   --paths '/*'
 ```
 
-The site's URL is `terraform -chdir=terraform output -raw cloudfront_domain_name`.
+The site's URL is https://alertafuego.com.ar once the domain is set up (above); before that, `terraform -chdir=terraform output -raw cloudfront_domain_name`.
 
 ## Notes
 

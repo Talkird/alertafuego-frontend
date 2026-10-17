@@ -22,6 +22,8 @@ resource "aws_cloudfront_distribution" "frontend" {
   default_root_object = "index.html"
   price_class         = var.cloudfront_price_class
   comment             = "${var.project_name} (${var.environment})"
+  # The custom domain, once delegated (see domain.tf).
+  aliases = var.domain_delegated ? local.domain_names : []
 
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
@@ -66,10 +68,13 @@ resource "aws_cloudfront_distribution" "frontend" {
     }
   }
 
-  # No custom domain configured - swap this for an ACM cert (must be in
-  # us-east-1) plus `aliases` once you have one.
+  # The domain's certificate once delegated (see domain.tf); until then, the
+  # default *.cloudfront.net one.
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = !var.domain_delegated
+    acm_certificate_arn            = var.domain_delegated ? aws_acm_certificate_validation.site[0].certificate_arn : null
+    ssl_support_method             = var.domain_delegated ? "sni-only" : null
+    minimum_protocol_version       = var.domain_delegated ? "TLSv1.2_2021" : "TLSv1"
   }
 
   tags = {
