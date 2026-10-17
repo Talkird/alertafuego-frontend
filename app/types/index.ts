@@ -49,13 +49,30 @@ export interface ReportCreate {
   comment?: string | null;
 }
 
+/** A province or department (IGN). */
+export interface Region {
+  /** 2 digits for a province, 5 for a department. */
+  code: string;
+  name: string;
+  /** The department's province. Null for provinces. */
+  province_code: string | null;
+}
+
+/** What Estadísticas covers. */
+export type Place =
+  | { kind: "country" }
+  | { kind: "region"; code: string }
+  | { kind: "area"; id: number };
+
+/** A circle (lat, lon, radius_km) or a province or department (region). */
 export interface AlertArea {
   id: number;
   name: string;
   email: string;
-  lat: number;
-  lon: number;
-  radius_km: number;
+  lat: number | null;
+  lon: number | null;
+  radius_km: number | null;
+  region: Region | null;
   min_probability: number;
   active: boolean;
   created_at: string;
@@ -63,9 +80,10 @@ export interface AlertArea {
 
 export interface AlertAreaCreate {
   name: string;
-  lat: number;
-  lon: number;
-  radius_km: number;
+  lat?: number;
+  lon?: number;
+  radius_km?: number;
+  region_code?: string;
   min_probability: number;
 }
 
@@ -106,6 +124,9 @@ export interface ReportStat {
 export interface AreaDraft {
   id: number | null;
   name: string;
+  kind: "circle" | "region";
+  /** Region zones: the province or department. */
+  region_code: string | null;
   /** null until picked on the map or from the browser's location. */
   lat: number | null;
   lon: number | null;

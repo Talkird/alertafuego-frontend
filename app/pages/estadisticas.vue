@@ -7,14 +7,20 @@ import type { StoredDetection, Period } from "~/types";
 useSeoMeta({
   title: "Estadísticas",
   description:
-    "Estadísticas históricas de focos de incendio detectados en Argentina, filtrables por fecha y período.",
+    "Estadísticas históricas de focos de incendio detectados en Argentina, filtrables por fecha, provincia, departamento o zona de alerta.",
 });
 
 const UBadge = resolveComponent("UBadge");
 const UButton = resolveComponent("UButton");
 const UDropdownMenu = resolveComponent("UDropdownMenu");
 
-const { range, query } = storeToRefs(useFiltersStore());
+const {
+  range,
+  query: rangeQuery,
+  place,
+  placeQuery,
+} = storeToRefs(useFiltersStore());
+const query = computed(() => ({ ...rangeQuery.value, ...placeQuery.value }));
 const period = ref<Period>("daily");
 
 // The total and the daily chart count these rows, so ask for the API's maximum
@@ -216,6 +222,7 @@ const sorting = ref([]);
         </template>
 
         <template #right>
+          <DashboardPlaceSelect v-model="place" />
           <DashboardExportMenu
             :detections="detections ?? []"
             :range="range"
