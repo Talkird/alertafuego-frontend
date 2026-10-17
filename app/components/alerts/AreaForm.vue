@@ -5,8 +5,8 @@ const draft = defineModel<AreaDraft>({ required: true });
 
 defineProps<{
   saving?: boolean;
-  /** Mobile: the center is picked in a separate step (map under a fixed pin),
-   * so the form only shows it with a button to go back to that step. */
+  /** Mobile: the center (or the polygon) is placed in a separate map step, so
+   * the form only shows it with a button to go back to that step. */
   relocatable?: boolean;
 }>();
 
@@ -26,9 +26,12 @@ const minProbabilityPct = computed({
 });
 
 const kindItems = [
-  { label: "En el mapa", value: "circle", icon: "i-lucide-circle-dot" },
-  { label: "Provincia o depto.", value: "region", icon: "i-lucide-map" },
+  { label: "Círculo", value: "circle" },
+  { label: "Polígono", value: "polygon" },
+  { label: "Provincia o depto.", value: "region" },
 ];
+
+const points = computed(() => draft.value.polygon.length);
 
 const { provinces, departments } = useRegions();
 
@@ -44,7 +47,7 @@ const departmentItems = computed(() => {
   if (!province) return [];
   return [
     { code: province, name: "Toda la provincia" },
-    ...departments.value.filter((d) => d.province_code === province),
+    ...departments.filter((d) => d.province_code === province),
   ];
 });
 
@@ -58,7 +61,9 @@ const canSave = computed(
     draft.value.name.trim() !== "" &&
     (draft.value.kind === "region"
       ? draft.value.region_code !== null
-      : draft.value.lat !== null && draft.value.lon !== null),
+      : draft.value.kind === "polygon"
+        ? draft.value.polygon.length >= 3
+        : draft.value.lat !== null && draft.value.lon !== null),
 );
 </script>
 
@@ -109,6 +114,59 @@ const canSave = computed(
         />
       </UFormField>
     </template>
+
+    <UFormField
+      v-else-if="draft.kind === 'polygon'"
+      label="Polígono"
+      :help="
+        relocatable
+          ? undefined
+          : points < 3
+            ? 'Hacé click en el mapa para marcar cada vértice (mínimo 3).'
+            : 'Seguí haciendo click para agregar vértices.'
+      "
+    >
+      <div class="flex items-center gap-2">
+        <p class="flex-1 text-xs">
+          <span v-if="points" class="text-highlighted">
+            {{ points }} {{ points === 1 ? "vértice" : "vértices" }}
+          </span>
+          <span v-else class="text-muted">Sin dibujar</span>
+        </p>
+        <UButton
+          v-if="relocatable"
+          size="xs"
+          color="neutral"
+          variant="subtle"
+          icon="i-lucide-pentagon"
+          @click="emit('relocate')"
+        >
+          {{ points ? "Cambiar" : "Dibujar en el mapa" }}
+        </UButton>
+        <template v-else>
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="subtle"
+            icon="i-lucide-undo-2"
+            :disabled="!points"
+            @click="draft.polygon.pop()"
+          >
+            Deshacer
+          </UButton>
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="subtle"
+            icon="i-lucide-eraser"
+            :disabled="!points"
+            @click="draft.polygon = []"
+          >
+            Borrar
+          </UButton>
+        </template>
+      </div>
+    </UFormField>
 
     <UFormField v-else-if="relocatable" label="Centro">
       <div class="flex items-center gap-2">

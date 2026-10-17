@@ -59,7 +59,7 @@ watch(
       v-else-if="!areas.length"
       icon="i-lucide-map-pin-plus"
       title="Todavía no tenés zonas"
-      description="Elegí un punto y un radio, por ejemplo tu campo o tu localidad, o una provincia o departamento, y te avisamos cuando se detecte un foco dentro."
+      description="Elegí un punto y un radio, dibujá un polígono (por ejemplo, los límites de tu campo) o elegí una provincia o departamento, y te avisamos cuando se detecte un foco dentro."
       :actions="[
         {
           label: 'Crear una zona',
@@ -95,7 +95,11 @@ watch(
             </span>
             <span class="text-muted block text-xs">
               {{
-                area.region ? regionLabel(area.region) : `${area.radius_km} km`
+                area.region
+                  ? regionLabel(area.region)
+                  : area.polygon
+                    ? "Polígono"
+                    : `${area.radius_km} km`
               }}
               · probabilidad ≥
               {{ Math.round(area.min_probability * 100) }}%

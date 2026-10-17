@@ -18,6 +18,7 @@ import type {
   AlertArea,
   AlertsTab,
   AreaDraft,
+  LatLon,
   SheetSnap,
   StoredDetection,
 } from "~/types";
@@ -93,6 +94,7 @@ async function loadOutline(code: string): Promise<GeoJsonObject | null> {
 const circleAreas = computed(() =>
   areas.value.filter((a) => a.lat !== null && a.lon !== null),
 );
+const polygonAreas = computed(() => areas.value.filter((a) => a.polygon));
 const regionAreas = computed(() => areas.value.filter((a) => a.region));
 
 watch(
@@ -171,6 +173,15 @@ const alertedDetections = computed(() => {
 const pickingOnMobile = computed(
   () =>
     !isDesktop.value && draft.value !== null && mobileStep.value === "location",
+);
+
+// Where map clicks place the draft's center (circle) or add a corner (polygon):
+// on desktop anytime, on mobile only in the map step.
+const drawing = computed(
+  () =>
+    draft.value !== null &&
+    draft.value.kind !== "region" &&
+    (isDesktop.value || mobileStep.value === "location"),
 );
 
 function token(): string {
@@ -274,7 +285,16 @@ function circleBounds(lat: number, lon: number, radiusKm: number) {
   ] as [[number, number], [number, number]];
 }
 
-/** Bounds of a zone: its circle, or its region's outline (fetched if needed). */
+function pointsBounds(points: LatLon[]): [[number, number], [number, number]] {
+  const lats = points.map((p) => p[0]);
+  const lons = points.map((p) => p[1]);
+  return [
+    [Math.min(...lats), Math.min(...lons)],
+    [Math.max(...lats), Math.max(...lons)],
+  ];
+}
+
+/** Bounds of a zone: its circle, polygon, or region's outline (loaded if needed). */
 async function areaBounds(
   area: AlertArea,
 ): Promise<[[number, number], [number, number]] | null> {
@@ -283,6 +303,7 @@ async function areaBounds(
       outlines.value[area.region.code] ?? (await loadOutline(area.region.code));
     return outline ? outlineBounds(outline) : null;
   }
+  if (area.polygon) return pointsBounds(area.polygon);
   return circleBounds(area.lat!, area.lon!, area.radius_km!);
 }
 
@@ -321,7 +342,7 @@ function focus(lat: number, lon: number, zoomLevel: number) {
 async function focusArea(area: AlertArea) {
   selectedAreaId.value = area.id;
   if (!isDesktop.value) sheet.value = "peek";
-  if (!area.region) {
+  if (area.lat !== null) {
     focus(area.lat!, area.lon!, zoomForRadius(area.radius_km!));
     return;
   }
@@ -342,6 +363,7 @@ function newArea() {
     id: null,
     name: "",
     kind: "circle",
+    polygon: [],
     region_code: null,
     lat: null,
     lon: null,
@@ -367,7 +389,8 @@ function editArea(area: AlertArea) {
   draft.value = {
     id: area.id,
     name: area.name,
-    kind: area.region ? "region" : "circle",
+    kind: area.region ? "region" : area.polygon ? "polygon" : "circle",
+    polygon: area.polygon ? [...area.polygon] : [],
     region_code: area.region?.code ?? null,
     lat: area.lat,
     lon: area.lon,
@@ -395,7 +418,12 @@ function setDraftCenter(lat: number, lon: number) {
 
 // Desktop: the center is placed by clicking the map.
 function onMapClick(event: LeafletMouseEvent) {
-  if (!draft.value || draft.value.kind !== "circle" || !isDesktop.value) return;
+  if (!draft.value || !drawing.value) return;
+  if (draft.value.kind === "polygon") {
+    draft.value.polygon.push([event.latlng.lat, event.latlng.lng]);
+    return;
+  }
+  if (!isDesktop.value) return;
   const firstPick = draft.value.lat === null;
   setDraftCenter(event.latlng.lat, event.latlng.lng);
   // Picked on a zoomed-out map, the new circle would be a speck: zoom in once.
@@ -408,7 +436,7 @@ function onMapClick(event: LeafletMouseEvent) {
 // Mobile: the center follows the map under a fixed pin, which is far more
 // precise on a touchscreen than tapping a point.
 function onMapMove() {
-  if (!pickingOnMobile.value || !map) return;
+  if (!pickingOnMobile.value || draft.value?.kind !== "circle" || !map) return;
   const center = map.getCenter();
   setDraftCenter(center.lat, center.lng);
 }
@@ -429,6 +457,11 @@ function relocate() {
   if (!draft.value) return;
   mobileStep.value = "location";
   sheet.value = "peek";
+  if (draft.value.kind === "polygon") {
+    if (draft.value.polygon.length)
+      map?.fitBounds(pointsBounds(draft.value.polygon), { padding: [32, 32] });
+    return;
+  }
   // A zone switched from a region has no center yet: start at the map's.
   if (draft.value.lat === null || draft.value.lon === null) {
     const center = map?.getCenter();
@@ -438,11 +471,15 @@ function relocate() {
   focus(draft.value.lat, draft.value.lon, zoomForRadius(draft.value.radius_km));
 }
 
-// Mobile location step: skip the map and choose a province or department.
+// Mobile location step: switch to another kind of zone.
 function chooseRegion() {
   if (!draft.value) return;
   draft.value.kind = "region";
   confirmLocation();
+}
+
+function drawPolygon() {
+  if (draft.value) draft.value.kind = "polygon";
 }
 
 async function saveDraft() {
@@ -451,12 +488,14 @@ async function saveDraft() {
   const shape =
     current.kind === "region"
       ? current.region_code !== null && { region_code: current.region_code }
-      : current.lat !== null &&
-        current.lon !== null && {
-          lat: current.lat,
-          lon: current.lon,
-          radius_km: current.radius_km,
-        };
+      : current.kind === "polygon"
+        ? current.polygon.length >= 3 && { polygon: current.polygon }
+        : current.lat !== null &&
+          current.lon !== null && {
+            lat: current.lat,
+            lon: current.lon,
+            radius_km: current.radius_km,
+          };
   if (!shape) return;
 
   saving.value = true;
@@ -486,8 +525,18 @@ async function saveDraft() {
     // Show the new circle; on mobile the sheet stays low so it isn't covered.
     focusArea(saved);
   } catch (error) {
-    if (!isUnauthorized(error))
-      toast.add({ title: "No se pudo guardar la zona", color: "error" });
+    if (isUnauthorized(error)) return;
+    // The backend rejects polygons whose sides cross or that are too large.
+    const badPolygon =
+      current.kind === "polygon" &&
+      (error as { statusCode?: number }).statusCode === 422;
+    toast.add({
+      title: "No se pudo guardar la zona",
+      description: badPolygon
+        ? "Revisá el polígono: sus lados no pueden cruzarse y no puede superar los 125.000 km²."
+        : undefined,
+      color: "error",
+    });
   } finally {
     saving.value = false;
   }
@@ -634,9 +683,7 @@ function showAlert(alert: Alert) {
           <!-- On mobile the map stops above the peeking sheet, so its center
                (and the pin) and the attribution stay visible. -->
           <div
-            :data-picking="
-              draft?.kind === 'circle' && isDesktop ? '' : undefined
-            "
+            :data-picking="drawing && isDesktop ? '' : undefined"
             :class="
               isDesktop
                 ? 'relative flex-1'
@@ -644,10 +691,14 @@ function showAlert(alert: Alert) {
             "
           >
             <p
-              v-if="draft?.kind === 'circle' && isDesktop"
+              v-if="drawing && isDesktop"
               class="bg-default/90 ring-default text-highlighted pointer-events-none absolute top-3 left-1/2 z-[1000] -translate-x-1/2 rounded-lg px-3 py-1.5 text-sm shadow-sm ring"
             >
-              Hacé click en el mapa para ubicar el centro
+              {{
+                draft?.kind === "polygon"
+                  ? "Hacé click en el mapa para agregar vértices"
+                  : "Hacé click en el mapa para ubicar el centro"
+              }}
             </p>
 
             <LMap
@@ -672,6 +723,19 @@ function showAlert(alert: Alert) {
                 :key="area.id"
                 :lat-lng="[area.lat!, area.lon!]"
                 :radius="area.radius_km! * 1000"
+                :color="area.active ? AREA_COLOR : INACTIVE_AREA_COLOR"
+                :fill-opacity="highlightedAreaId === area.id ? 0.2 : 0.08"
+                :weight="highlightedAreaId === area.id ? 3 : 2"
+                :interactive="!draft"
+                @click="selectAreaOnMap(area)"
+                @mouseover="hoveredAreaId = area.id"
+                @mouseout="hoveredAreaId = null"
+              />
+
+              <LPolygon
+                v-for="area in polygonAreas"
+                :key="area.id"
+                :lat-lngs="area.polygon!"
                 :color="area.active ? AREA_COLOR : INACTIVE_AREA_COLOR"
                 :fill-opacity="highlightedAreaId === area.id ? 0.2 : 0.08"
                 :weight="highlightedAreaId === area.id ? 3 : 2"
@@ -720,6 +784,38 @@ function showAlert(alert: Alert) {
                 :interactive="false"
               />
 
+              <!-- Copies: the layers only redraw when the array itself changes,
+                   not when a corner is pushed onto it. -->
+              <template v-if="draft?.kind === 'polygon'">
+                <LPolygon
+                  v-if="draft.polygon.length >= 3"
+                  :lat-lngs="[...draft.polygon]"
+                  :color="AREA_COLOR"
+                  :fill-opacity="0.15"
+                  :weight="2"
+                  dash-array="6 6"
+                  :interactive="false"
+                />
+                <LPolyline
+                  v-else-if="draft.polygon.length === 2"
+                  :lat-lngs="[...draft.polygon]"
+                  :color="AREA_COLOR"
+                  :weight="2"
+                  dash-array="6 6"
+                  :interactive="false"
+                />
+                <LCircleMarker
+                  v-for="(point, index) in draft.polygon"
+                  :key="index"
+                  :lat-lng="point"
+                  :radius="4"
+                  :color="AREA_COLOR"
+                  :fill-color="AREA_COLOR"
+                  :fill-opacity="1"
+                  :interactive="false"
+                />
+              </template>
+
               <MapDetectionMarker
                 v-for="detection in alertedDetections"
                 :key="detection.id"
@@ -733,7 +829,7 @@ function showAlert(alert: Alert) {
             <!-- Fixed pin for the mobile location step: its tip marks the
                  map's center. -->
             <UIcon
-              v-if="pickingOnMobile"
+              v-if="pickingOnMobile && draft?.kind === 'circle'"
               name="i-lucide-map-pin"
               class="text-primary pointer-events-none absolute top-1/2 left-1/2 z-[1000] size-10 -translate-x-1/2 -translate-y-full drop-shadow"
             />
@@ -778,7 +874,49 @@ function showAlert(alert: Alert) {
 
           <AlertsBottomSheet v-if="!isDesktop" v-model="sheet">
             <!-- Location step: just enough sheet to explain and confirm. -->
-            <div v-if="pickingOnMobile" class="space-y-3">
+            <div
+              v-if="pickingOnMobile && draft?.kind === 'polygon'"
+              class="space-y-3"
+            >
+              <div class="flex items-start gap-2">
+                <p class="text-highlighted flex-1 text-sm font-medium">
+                  Tocá el mapa para marcar los vértices de tu zona
+                  <span class="text-muted font-normal">
+                    ({{ draft.polygon.length }})
+                  </span>
+                </p>
+                <UButton
+                  size="sm"
+                  color="neutral"
+                  variant="subtle"
+                  class="shrink-0"
+                  @click="cancelDraft"
+                >
+                  Cancelar
+                </UButton>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <UButton
+                  color="neutral"
+                  variant="subtle"
+                  icon="i-lucide-undo-2"
+                  :disabled="!draft.polygon.length"
+                  block
+                  @click="draft.polygon.pop()"
+                >
+                  Deshacer
+                </UButton>
+                <UButton
+                  block
+                  :disabled="draft.polygon.length < 3"
+                  @click="confirmLocation"
+                >
+                  Usar este polígono
+                </UButton>
+              </div>
+            </div>
+
+            <div v-else-if="pickingOnMobile" class="space-y-3">
               <div class="flex items-start gap-2">
                 <p class="text-highlighted flex-1 text-sm font-medium">
                   Mové el mapa hasta que el pin quede en el centro de tu zona
@@ -808,15 +946,24 @@ function showAlert(alert: Alert) {
                   Usar esta ubicación
                 </UButton>
               </div>
-              <UButton
-                color="neutral"
-                variant="link"
-                icon="i-lucide-map"
-                block
-                @click="chooseRegion"
-              >
-                Elegir una provincia o departamento
-              </UButton>
+              <div class="flex flex-wrap justify-center gap-x-2">
+                <UButton
+                  color="neutral"
+                  variant="link"
+                  icon="i-lucide-pentagon"
+                  @click="drawPolygon"
+                >
+                  Dibujar un polígono
+                </UButton>
+                <UButton
+                  color="neutral"
+                  variant="link"
+                  icon="i-lucide-map"
+                  @click="chooseRegion"
+                >
+                  Elegir provincia o depto.
+                </UButton>
+              </div>
             </div>
 
             <ReusePanel v-else />
