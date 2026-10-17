@@ -53,14 +53,14 @@ const items = computed<SelectMenuItem[][]>(() => {
   groups.push(
     [
       { type: "label", label: "Provincias" },
-      ...provinces.value.map((r) => ({
+      ...provinces.map((r) => ({
         label: r.name,
         value: `region:${r.code}`,
       })),
     ],
     [
       { type: "label", label: "Departamentos" },
-      ...departments.value.map((r) => ({
+      ...departments.map((r) => ({
         label: regionLabel(r),
         value: `region:${r.code}`,
       })),

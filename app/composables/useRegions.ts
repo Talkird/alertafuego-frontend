@@ -1,46 +1,38 @@
 import type { GeoJsonObject } from "geojson";
 import type { Region } from "~/types";
+// Exported from the backend's regions table (backend.scripts.export_regions):
+// shipped with the app, so no request is needed to list them.
+import regionList from "~/data/regions.json";
 
-/** Argentina's provinces and departments, loaded once and shared by key. */
+const regions = regionList as Region[];
+const byCode = new Map(regions.map((r) => [r.code, r]));
+// Spanish order ("Córdoba" before "Corrientes").
+const sorted = [...regions].sort((a, b) => a.name.localeCompare(b.name, "es"));
+const provinces = sorted.filter((r) => r.province_code === null);
+const departments = sorted.filter((r) => r.province_code !== null);
+
+/** "Chaco", or "General Güemes, Chaco" for a department. */
+function regionLabel(region: Region): string {
+  const province = region.province_code
+    ? byCode.get(region.province_code)
+    : null;
+  return province ? `${region.name}, ${province.name}` : region.name;
+}
+
+/** Argentina's provinces and departments (IGN). */
 export function useRegions() {
-  const config = useRuntimeConfig();
-  const { data } = useFetch<Region[]>("/regions", {
-    baseURL: config.public.apiBase,
-    key: "regions",
-    default: () => [],
-    lazy: true,
-  });
-  const byCode = computed(() => new Map(data.value.map((r) => [r.code, r])));
-  // Spanish order ("Córdoba" before "Corrientes"), whatever the database's.
-  const sorted = computed(() =>
-    [...data.value].sort((a, b) => a.name.localeCompare(b.name, "es")),
-  );
-  const provinces = computed(() =>
-    sorted.value.filter((r) => r.province_code === null),
-  );
-  const departments = computed(() =>
-    sorted.value.filter((r) => r.province_code !== null),
-  );
-
-  /** "Chaco", or "General Güemes, Chaco" for a department. */
-  function regionLabel(region: Region): string {
-    const province = region.province_code
-      ? byCode.value.get(region.province_code)
-      : null;
-    return province ? `${region.name}, ${province.name}` : region.name;
-  }
-
-  return { regions: data, byCode, provinces, departments, regionLabel };
+  return { regions, byCode, provinces, departments, regionLabel };
 }
 
 const outlines = new Map<string, Promise<GeoJsonObject>>();
 
-/** A region's outline (GeoJSON), fetched once per code. */
+/** A region's outline (GeoJSON), loaded once per code. */
 export function fetchRegionOutline(code: string): Promise<GeoJsonObject> {
   let outline = outlines.get(code);
   if (!outline) {
-    outline = $fetch<GeoJsonObject>(`/regions/${code}/geometry`, {
-      baseURL: useRuntimeConfig().public.apiBase,
+    // A static file served with the site (public/regions), not the API.
+    outline = $fetch<GeoJsonObject>(`/regions/${code}.json`, {
+      baseURL: useRuntimeConfig().app.baseURL,
     });
     // A failed fetch shouldn't be cached: let the next call retry.
     outline.catch(() => outlines.delete(code));
