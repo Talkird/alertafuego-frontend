@@ -14,6 +14,7 @@ useSeoMeta({
 const heroLinks: ButtonProps[] = [
   {
     label: "Ingresar al mapa",
+    trailingIcon: "i-lucide-arrow-right",
     to: "/mapa",
     size: "xl",
   },
