@@ -51,7 +51,7 @@ const items = computed<NavigationMenuItem[]>(() =>
 
 const access = computed(() =>
   user.value
-    ? { label: "Ir al mapa", to: "/mapa", icon: "i-lucide-map" }
+    ? { label: "Ir al mapa", to: "/mapa" }
     : { label: "Iniciar sesión", to: "/login" },
 );
 
