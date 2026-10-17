@@ -49,13 +49,36 @@ export interface ReportCreate {
   comment?: string | null;
 }
 
+/** A province or department (IGN). */
+export interface Region {
+  /** 2 digits for a province, 5 for a department. */
+  code: string;
+  name: string;
+  /** The department's province. Null for provinces. */
+  province_code: string | null;
+}
+
+/** What Estadísticas covers. */
+export type Place =
+  | { kind: "country" }
+  | { kind: "region"; code: string }
+  | { kind: "area"; id: number };
+
+/** [lat, lon] */
+export type LatLon = [number, number];
+
+/** Exactly one of: a circle (lat, lon, radius_km), a polygon, or a province or
+ * department (region). */
 export interface AlertArea {
   id: number;
   name: string;
   email: string;
-  lat: number;
-  lon: number;
-  radius_km: number;
+  lat: number | null;
+  lon: number | null;
+  radius_km: number | null;
+  /** Corners, not closed (the first isn't repeated). */
+  polygon: LatLon[] | null;
+  region: Region | null;
   min_probability: number;
   active: boolean;
   created_at: string;
@@ -63,9 +86,11 @@ export interface AlertArea {
 
 export interface AlertAreaCreate {
   name: string;
-  lat: number;
-  lon: number;
-  radius_km: number;
+  lat?: number;
+  lon?: number;
+  radius_km?: number;
+  polygon?: LatLon[];
+  region_code?: string;
   min_probability: number;
 }
 
@@ -106,6 +131,11 @@ export interface ReportStat {
 export interface AreaDraft {
   id: number | null;
   name: string;
+  kind: "circle" | "polygon" | "region";
+  /** Polygon zones: the corners placed so far. */
+  polygon: LatLon[];
+  /** Region zones: the province or department. */
+  region_code: string | null;
   /** null until picked on the map or from the browser's location. */
   lat: number | null;
   lon: number | null;
@@ -135,4 +165,21 @@ export interface AccountSettings {
 export interface TelegramLink {
   url: string;
   expires_at: string;
+}
+
+/** One ~2 km cell of the recurrence map: how often fire came back there. */
+export interface RecurrenceCell {
+  /** The cell's center. */
+  lat: number;
+  lon: number;
+  /** Distinct days (Argentina time) with fire in the cell. */
+  fire_days: number;
+  years: number;
+  detection_count: number;
+  last_image_time: string;
+}
+
+export interface Recurrence {
+  cell_size_deg: number;
+  cells: RecurrenceCell[];
 }

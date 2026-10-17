@@ -8,6 +8,7 @@ const sections = [
   { label: "Funcionalidades", id: "funcionalidades" },
   { label: "Cómo funciona", id: "como-funciona" },
   { label: "Fuente de datos", id: "fuente-de-datos" },
+  { label: "Planes", id: "planes" },
 ];
 
 // Smooth scrolling for the in-page links, only on the landing (the app pages
@@ -51,7 +52,7 @@ const items = computed<NavigationMenuItem[]>(() =>
 
 const access = computed(() =>
   user.value
-    ? { label: "Ir al mapa", to: "/mapa", icon: "i-lucide-map" }
+    ? { label: "Ir al mapa", to: "/mapa" }
     : { label: "Iniciar sesión", to: "/login" },
 );
 

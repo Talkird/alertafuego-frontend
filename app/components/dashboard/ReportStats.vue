@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { ReportCategory } from "~/types";
 
-const { query } = storeToRefs(useFiltersStore());
+const { query: rangeQuery, placeQuery } = storeToRefs(useFiltersStore());
+const query = computed(() => ({ ...rangeQuery.value, ...placeQuery.value }));
 
 const { data: stats, status, error } = useReportStats(query);
 useFetchErrorToast(error, "No se pudieron cargar las estadísticas");

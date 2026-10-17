@@ -10,8 +10,22 @@ const kindOptions = [
   { label: "Departamentos", value: "department" },
 ];
 
-const { query: rangeQuery } = storeToRefs(useFiltersStore());
-const query = computed(() => ({ kind: kind.value, ...rangeQuery.value }));
+const { query: rangeQuery, place, placeQuery } = storeToRefs(useFiltersStore());
+const query = computed(() => ({
+  kind: kind.value,
+  ...rangeQuery.value,
+  ...placeQuery.value,
+}));
+
+// Within a province, provinces would be a single row: break it down instead.
+watch(
+  place,
+  (value) => {
+    if (value.kind === "region" && value.code.length === 2)
+      kind.value = "department";
+  },
+  { immediate: true },
+);
 
 const { data: regions, status, error } = useRegionStats(query);
 useFetchErrorToast(error, "No se pudieron cargar las estadísticas");

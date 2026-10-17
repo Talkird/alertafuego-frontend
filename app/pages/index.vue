@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { ButtonProps, TimelineItem } from "@nuxt/ui";
+import type {
+  ButtonProps,
+  PricingPlanProps,
+  TabsItem,
+  TimelineItem,
+} from "@nuxt/ui";
 
 definePageMeta({
   layout: "landing",
@@ -14,6 +19,7 @@ useSeoMeta({
 const heroLinks: ButtonProps[] = [
   {
     label: "Ingresar al mapa",
+    trailingIcon: "i-lucide-arrow-right",
     to: "/mapa",
     size: "xl",
   },
@@ -98,6 +104,103 @@ const metrics = [
   { value: "2 km", label: "Resolución nominal en infrarrojo" },
   { value: "35.786 km", label: "Altitud de la órbita" },
 ];
+
+const user = useSupabaseUser();
+
+type Billing = "monthly" | "yearly";
+const billing = ref<Billing>("monthly");
+const billingItems: TabsItem[] = [
+  { label: "Mensual", value: "monthly" },
+  { label: "Anual", value: "yearly" },
+];
+
+// No payments yet: every plan's button leads into the app (login first if needed).
+const plans = computed<PricingPlanProps[]>(() => {
+  const to = user.value ? "/mapa" : "/login";
+  const yearly = billing.value === "yearly";
+  const paid = (monthly: string, annual: string) => ({
+    price: yearly ? annual : monthly,
+    billingCycle: yearly ? "/año" : "/mes",
+  });
+  // Four plans side by side: let titles and features wrap instead of truncating.
+  const ui = {
+    root: "xl:p-8",
+    titleWrapper: "flex-wrap gap-2",
+    title: "whitespace-normal!",
+    description: "xl:min-h-18",
+    feature: "items-start",
+    featureTitle: "whitespace-normal!",
+  };
+  const list: PricingPlanProps[] = [
+    {
+      title: "Comunidad",
+      description:
+        "Ciudadanía, brigadas, municipios pequeños, ONGs y academia.",
+      price: "Gratis",
+      features: [
+        "Mapa nacional con todas las detecciones",
+        "Filtros y reportes comunitarios",
+        "Acceso público a la API de detecciones para usos sin fines de lucro",
+      ],
+      button: {
+        label: "Empezar gratis",
+        to,
+        color: "neutral",
+        variant: "subtle",
+      },
+    },
+    {
+      title: "Alerta",
+      description: "Productores y propietarios rurales.",
+      ...paid("USD 15", "USD 150"),
+      features: [
+        "Alertas por hasta 3 zonas",
+        "Avisos por email, WhatsApp y Telegram",
+        "Análisis de tus zonas",
+        "Reportes exportables de tus zonas",
+      ],
+      button: {
+        label: "Elegir Alerta",
+        to,
+        color: "neutral",
+        variant: "subtle",
+      },
+    },
+    {
+      title: "Análisis",
+      description:
+        "Productores y empresas medianas, asesores técnicos y consultoras.",
+      ...paid("USD 30", "USD 300"),
+      features: [
+        "Todo lo del plan Alerta",
+        "Hasta 10 zonas de alerta",
+        "Dashboard completo con filtros por país, provincia y departamento",
+        "Reportes exportables",
+      ],
+      button: { label: "Elegir Análisis", to },
+      badge: "Recomendado",
+      highlight: true,
+    },
+    {
+      title: "Organización",
+      description:
+        "Empresas agroforestales, de energía, aseguradoras y organismos públicos.",
+      ...paid("USD 120", "USD 1.200"),
+      features: [
+        "Todo lo del plan Análisis",
+        "Hasta 25 zonas de alerta",
+        "Hasta 10 cuentas de usuario",
+      ],
+      button: {
+        label: "Elegir Organización",
+        to,
+        color: "neutral",
+        variant: "subtle",
+      },
+    },
+  ];
+  return list.map((plan) => ({ ...plan, ui }));
+});
 </script>
 
 <template>
@@ -167,6 +270,26 @@ const metrics = [
           }"
         />
       </UPageGrid>
+    </UPageSection>
+
+    <UPageSection
+      id="planes"
+      headline="Planes"
+      title="Un plan para cada necesidad"
+      description="El mapa nacional es gratis para todos. Los planes pagos suman alertas y análisis para tus zonas y regiones."
+      class="scroll-mt-(--ui-header-height)"
+    >
+      <div class="flex justify-center">
+        <UTabs
+          v-model="billing"
+          :items="billingItems"
+          :content="false"
+          color="neutral"
+          size="sm"
+          class="w-56"
+        />
+      </div>
+      <UPricingPlans :plans="plans" class="xl:grid-cols-4" />
     </UPageSection>
 
     <UPageSection :ui="{ container: 'py-0 sm:py-0 lg:py-0' }">

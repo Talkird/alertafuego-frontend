@@ -5,6 +5,8 @@ const base = defineModel<BaseLayer>("base", { required: true });
 const weather = defineModel<WeatherLayer | null>("weather", {
   required: true,
 });
+// Only offered where the page binds it (the Mapa page).
+const recurrence = defineModel<boolean>("recurrence");
 
 // Weather layers need an OpenWeatherMap key (NUXT_PUBLIC_OWM_API_KEY).
 const weatherAvailable = !!useRuntimeConfig().public.owmApiKey;
@@ -49,6 +51,12 @@ const weatherValue = computed({
           v-model="weatherValue"
           legend="Clima"
           :items="weatherItems"
+        />
+        <USwitch
+          v-if="recurrence !== undefined"
+          v-model="recurrence"
+          label="Recurrencia"
+          description="Dónde se repiten los focos, en todo el historial."
         />
       </div>
     </template>

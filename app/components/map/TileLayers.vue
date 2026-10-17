@@ -21,13 +21,16 @@ const owmApiKey = useRuntimeConfig().public.owmApiKey;
     class-name="af-tiles-ign"
     no-wrap
   />
+  <!-- Esri has zoom 18 only in some areas (cities); elsewhere in Argentina it
+       returns a "Map data not yet available" tile. Zoom 17 is available
+       nationwide, so request at most 17 and let Leaflet upscale beyond it. -->
   <LTileLayer
     v-else
     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
     attribution="Imágenes &amp;copy; Esri, Maxar, Earthstar Geographics"
     layer-type="base"
     name="Satélite (Esri)"
-    :options="{ maxNativeZoom: 18 }"
+    :options="{ maxNativeZoom: 17 }"
     no-wrap
   />
 
