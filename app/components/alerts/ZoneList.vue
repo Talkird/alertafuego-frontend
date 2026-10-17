@@ -20,6 +20,8 @@ const emit = defineEmits<{
   hover: [id: number | null];
 }>();
 
+const { regionLabel } = useRegions();
+
 function menuItems(area: AlertArea): DropdownMenuItem[] {
   return [
     {
@@ -57,7 +59,7 @@ watch(
       v-else-if="!areas.length"
       icon="i-lucide-map-pin-plus"
       title="Todavía no tenés zonas"
-      description="Elegí un punto y un radio, por ejemplo tu campo o tu localidad, y te avisamos cuando se detecte un foco dentro."
+      description="Elegí un punto y un radio, por ejemplo tu campo o tu localidad, o una provincia o departamento, y te avisamos cuando se detecte un foco dentro."
       :actions="[
         {
           label: 'Crear una zona',
@@ -92,7 +94,10 @@ watch(
               {{ area.name }}
             </span>
             <span class="text-muted block text-xs">
-              {{ area.radius_km }} km · probabilidad ≥
+              {{
+                area.region ? regionLabel(area.region) : `${area.radius_km} km`
+              }}
+              · probabilidad ≥
               {{ Math.round(area.min_probability * 100) }}%
               <template v-if="!area.active"> · pausada</template>
             </span>

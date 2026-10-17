@@ -7,6 +7,8 @@ export interface DetectionsQuery {
   north?: number;
   since?: string;
   until?: string;
+  region_code?: string;
+  area_id?: number;
   limit?: number;
 }
 
@@ -25,6 +27,7 @@ export function useDetections(
   return useFetch<StoredDetection[]>("/detections", {
     baseURL: config.public.apiBase,
     query,
+    headers: placeHeaders(query),
     default: () => [],
     key: `detections:${route.path}`,
   });

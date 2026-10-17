@@ -1,5 +1,5 @@
 import { endOfDay, startOfDay, sub } from "date-fns";
-import type { Range } from "~/types";
+import type { Place, Range } from "~/types";
 
 /** Filters shared across pages, so the map and the statistics show the same period. */
 export const useFiltersStore = defineStore("filters", () => {
@@ -16,5 +16,15 @@ export const useFiltersStore = defineStore("filters", () => {
     until: endOfDay(range.value.end).toISOString(),
   }));
 
-  return { range, query };
+  // Estadísticas: the whole country, a province or department, or one of the
+  // user's alert zones. Not part of `query`: the map always shows the country.
+  const place = ref<Place>({ kind: "country" });
+  const placeQuery = computed(() => {
+    const value = place.value;
+    if (value.kind === "region") return { region_code: value.code };
+    if (value.kind === "area") return { area_id: value.id };
+    return {};
+  });
+
+  return { range, query, place, placeQuery };
 });
