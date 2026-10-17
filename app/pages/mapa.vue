@@ -17,10 +17,25 @@ const baseLayer = ref<BaseLayer>("map");
 // center prop changes identity, i.e. on every re-render (e.g. a filter change).
 const INITIAL_CENTER: [number, number] = [-38.4161, -63.6167];
 const weatherLayer = ref<WeatherLayer | null>(null);
+const showRecurrence = ref(false);
+
+// Map only: the last 30 min to 12 h instead of whole days (0: use the range).
+const recentMinutes = ref(0);
+// "Now" for the recent window, moved forward on every refresh.
+const now = ref(Date.now());
 
 // The API's maximum. The default (500) silently dropped detections on longer
 // ranges.
-const query = computed(() => ({ ...rangeQuery.value, limit: 5000 }));
+watch(recentMinutes, () => (now.value = Date.now()));
+
+const query = computed(() => ({
+  ...(recentMinutes.value
+    ? {
+        since: new Date(now.value - recentMinutes.value * 60_000).toISOString(),
+      }
+    : rangeQuery.value),
+  limit: 5000,
+}));
 
 const { data: detections, status, error, refresh } = useDetections(query);
 useFetchErrorToast(error, "No se pudieron cargar los focos");
@@ -37,6 +52,12 @@ watch(
 /** Refetch, and say so when it brought detections the map didn't have. */
 async function refreshAndNotify() {
   const known = new Set((detections.value ?? []).map((d) => d.id));
+  // A recent window ends now: move it, then fetch (the fetch this change
+  // triggers on its own is cancelled by the explicit one).
+  if (recentMinutes.value) {
+    now.value = Date.now();
+    await nextTick();
+  }
   await refresh();
   const added = (detections.value ?? []).filter((d) => !known.has(d.id)).length;
   if (added) {
@@ -96,6 +117,7 @@ const countLabel = computed(() => {
         <template #left>
           <MapFilters
             v-model:range="range"
+            v-model:recent-minutes="recentMinutes"
             v-model:min-confidence="minConfidence"
             v-model:max-reports="maxReports"
           />
@@ -136,6 +158,9 @@ const countLabel = computed(() => {
         >
           <MapTileLayers :base="baseLayer" :weather="weatherLayer" />
 
+          <!-- Under the detections: the period's fires stay on top. -->
+          <MapRecurrenceLayer v-if="showRecurrence" />
+
           <MapDetectionMarker
             v-for="detection in filteredDetections"
             :key="detection.id"
@@ -157,6 +182,7 @@ const countLabel = computed(() => {
         <MapLayerPicker
           v-model:base="baseLayer"
           v-model:weather="weatherLayer"
+          v-model:recurrence="showRecurrence"
           class="absolute top-3 right-3 z-[1000]"
         />
 
@@ -164,6 +190,7 @@ const countLabel = computed(() => {
           class="pointer-events-none absolute bottom-6 left-3 z-[1000] flex flex-col items-start gap-2"
         >
           <MapWeatherLegend v-if="weatherLayer" :layer="weatherLayer" />
+          <MapRecurrenceLegend v-if="showRecurrence" />
           <MapLegend />
         </div>
       </div>
