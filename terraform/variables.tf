@@ -38,5 +38,5 @@ variable "domain_name" {
 variable "domain_delegated" {
   description = "Set to true once NIC.ar delegates domain_name to the Route 53 name servers (output name_servers): validates the certificate and serves the site on the domain. See domain.tf."
   type        = bool
-  default     = false
+  default     = true
 }
