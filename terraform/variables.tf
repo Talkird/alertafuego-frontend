@@ -28,3 +28,15 @@ variable "cloudfront_price_class" {
   type        = string
   default     = "PriceClass_100"
 }
+
+variable "domain_name" {
+  description = "The site's domain, registered at NIC Argentina with its DNS delegated to Route 53 (see domain.tf)."
+  type        = string
+  default     = "alertafuego.com.ar"
+}
+
+variable "domain_delegated" {
+  description = "Set to true once NIC.ar delegates domain_name to the Route 53 name servers (output name_servers): validates the certificate and serves the site on the domain. See domain.tf."
+  type        = bool
+  default     = false
+}

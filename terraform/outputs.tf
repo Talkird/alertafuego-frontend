@@ -12,3 +12,8 @@ output "cloudfront_domain_name" {
   description = "The site's URL (until/unless you add a custom domain)."
   value       = aws_cloudfront_distribution.frontend.domain_name
 }
+
+output "name_servers" {
+  description = "Enter these at NIC Argentina (Delegar) for domain_name. See domain.tf."
+  value       = aws_route53_zone.site.name_servers
+}
