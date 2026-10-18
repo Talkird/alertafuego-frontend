@@ -1,7 +1,7 @@
 /** Shared by the Terms and Privacy pages. */
 export const LEGAL = {
   /** Shown as the people responsible for the service. Empty: the project team. */
-  team: [] as string[],
+  team: ["Juan Andrés Losauro", "Tomás Ignacio Peña"],
   contactEmail: "alertafuego26@gmail.com",
   updated: "18 de octubre de 2026",
 };
