@@ -45,7 +45,7 @@ onMounted(updateActiveSection);
 const items = computed<NavigationMenuItem[]>(() =>
   sections.map(({ label, id }) => ({
     label,
-    to: `#${id}`,
+    to: `/#${id}`,
     active: activeSection.value === id,
   })),
 );
@@ -87,11 +87,15 @@ const access = computed(() =>
     </UMain>
 
     <UFooter>
-      <template #left>
-        <p class="text-muted text-sm">
-          AlertaFuego © {{ new Date().getFullYear() }}
-        </p>
-      </template>
+      <div
+        class="text-muted flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm"
+      >
+        <p>AlertaFuego © {{ new Date().getFullYear() }}</p>
+        <ULink to="/terminos" class="hover:text-highlighted">Términos</ULink>
+        <ULink to="/privacidad" class="hover:text-highlighted">
+          Privacidad
+        </ULink>
+      </div>
     </UFooter>
   </div>
 </template>

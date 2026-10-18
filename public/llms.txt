@@ -1,0 +1,22 @@
+# AlertaFuego
+
+> AlertaFuego detecta focos de incendio en la Argentina casi en tiempo real. Analiza imágenes del satélite geoestacionario GOES-19 con un modelo de inteligencia artificial entrenado con detecciones de incendios VIIRS, publica los focos en un mapa y avisa a los usuarios cuando aparece uno en sus zonas. Es un Proyecto Final de Ingeniería en Informática de la UADE.
+
+El sitio está en español. El mapa, las estadísticas y las alertas requieren iniciar sesión (Google o un enlace por email, sin contraseña).
+
+## Sitio
+
+- [Inicio](https://alertafuego.com.ar/): qué es AlertaFuego, cómo funciona, la fuente de datos y los planes.
+- [Mapa](https://alertafuego.com.ar/mapa): focos detectados, con filtros por fecha, probabilidad y reportes, y capas de clima y recurrencia.
+- [Estadísticas](https://alertafuego.com.ar/estadisticas): focos por día, hora, provincia y departamento, exportables a Excel, CSV y GeoJSON.
+- [Alertas](https://alertafuego.com.ar/alertas): zonas de alerta (círculo, polígono, provincia o departamento) y avisos por email y Telegram.
+
+## API pública
+
+- [Documentación de la API](https://rdy7dfklzkxo7u2nrk3va5wb2y0eebcz.lambda-url.us-east-1.on.aws/docs): endpoints de lectura de detecciones y estadísticas, sin autenticación.
+- [Especificación OpenAPI](https://rdy7dfklzkxo7u2nrk3va5wb2y0eebcz.lambda-url.us-east-1.on.aws/openapi.json)
+
+## Legal
+
+- [Términos y condiciones](https://alertafuego.com.ar/terminos)
+- [Política de privacidad](https://alertafuego.com.ar/privacidad)

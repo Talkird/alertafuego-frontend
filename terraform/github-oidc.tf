@@ -119,12 +119,13 @@ data "aws_iam_policy_document" "github_actions_permissions" {
   }
 
   statement {
-    # The custom domain's DNS zone and its CloudFront certificate (domain.tf).
+    # The custom domain's DNS zone, its CloudFront certificate and its SES email
+    # identity (domain.tf).
     # Route 53 scopes few actions per zone and ACM requests aren't scopable
     # at all, so these follow the CloudFront statement above.
     sid       = "ManageDomain"
     effect    = "Allow"
-    actions   = ["route53:*", "acm:*"]
+    actions   = ["route53:*", "acm:*", "ses:*"]
     resources = ["*"]
   }
 

@@ -86,3 +86,42 @@ resource "aws_route53_record" "site" {
     evaluate_target_health = false
   }
 }
+
+# --- Email: sending alerts from the domain (e.g. alertas@alertafuego.com.ar) ---------
+# The backend sends alert emails through SES in us-east-1. Verifying the whole
+# domain, with DKIM signatures, lets it send from any address here and keeps the
+# emails out of spam (sending from a gmail.com address through SES fails Gmail's
+# own SPF/DKIM checks). Lives here because the domain's DNS zone does.
+
+resource "aws_sesv2_email_identity" "domain" {
+  provider       = aws.us_east_1
+  email_identity = var.domain_name
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+  }
+
+  depends_on = [aws_iam_role_policy.github_actions]
+}
+
+# The three CNAMEs SES checks to verify the domain and sign its emails (Easy DKIM).
+resource "aws_route53_record" "ses_dkim" {
+  count = 3
+
+  zone_id = aws_route53_zone.site.zone_id
+  name    = "${aws_sesv2_email_identity.domain.dkim_signing_attributes[0].tokens[count.index]}._domainkey.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 1800
+  records = ["${aws_sesv2_email_identity.domain.dkim_signing_attributes[0].tokens[count.index]}.dkim.amazonses.com"]
+}
+
+# Tells receiving servers how to treat mail claiming to be from the domain. p=none
+# only monitors (nothing is rejected): the safe start while sending is set up.
+resource "aws_route53_record" "dmarc" {
+  zone_id = aws_route53_zone.site.zone_id
+  name    = "_dmarc.${var.domain_name}"
+  type    = "TXT"
+  ttl     = 1800
+  records = ["v=DMARC1; p=none"]
+}
