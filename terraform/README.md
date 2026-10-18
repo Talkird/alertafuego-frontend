@@ -10,6 +10,8 @@ S3 (private, static build output) + CloudFront (CDN, HTTPS, SPA fallback routing
 2. **Delegate at NIC.ar.** In nic.ar → the domain → *Delegar*, enter the four name servers (no trailing dot). Wait until they're live: `dig NS alertafuego.com.ar +short` returns them (minutes to a few hours).
 3. **Serve the site on the domain** (`domain_delegated = true`, the default now that it's delegated). The apply waits for the certificate, adds the domain to CloudFront and creates the `A`/`AAAA` records for `alertafuego.com.ar` and `www`.
 
+`domain.tf` also verifies the domain in SES (us-east-1, with DKIM records in the zone) and adds a DMARC record, so the backend can send alert emails from any address on the domain. To use it, set the backend's `ALERT_EMAIL_FROM` GitHub variable to e.g. `alertas@alertafuego.com.ar`; outside the SES sandbox (request production access in the SES console) alerts reach any recipient.
+
 Then update everything that knows the site's URL: Supabase (Authentication → URL Configuration: Site URL and `https://alertafuego.com.ar/confirm` in Redirect URLs) and the backend's `FRONTEND_ORIGINS`/`FRONTEND_URL` GitHub variables.
 
 ## First-time setup

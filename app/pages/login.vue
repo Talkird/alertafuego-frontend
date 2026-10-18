@@ -100,7 +100,16 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
     :submit="{ label: 'Enviarme un enlace de acceso' }"
     :ui="{ header: 'text-left', title: 'text-2xl' }"
     @submit="onSubmit"
-  />
+  >
+    <template #footer>
+      Al continuar, aceptás los
+      <ULink to="/terminos" class="text-primary font-medium">Términos</ULink>
+      y la
+      <ULink to="/privacidad" class="text-primary font-medium">
+        Política de privacidad</ULink
+      >.
+    </template>
+  </UAuthForm>
 
   <div v-else class="space-y-6">
     <UIcon name="i-lucide-mail-check" class="text-primary size-8" />
