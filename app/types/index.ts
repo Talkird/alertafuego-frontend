@@ -62,7 +62,8 @@ export interface Region {
 export type Place =
   | { kind: "country" }
   | { kind: "region"; code: string }
-  | { kind: "area"; id: number };
+  /** regionCode: set for a province or department zone, null otherwise. */
+  | { kind: "area"; id: number; regionCode: string | null };
 
 /** [lat, lon] */
 export type LatLon = [number, number];

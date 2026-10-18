@@ -543,27 +543,42 @@ async function saveDraft() {
 }
 
 async function setActive(area: AlertArea, active: boolean) {
+  // Optimistic: the switch and the zone's color change right away, while the
+  // request (a second or two) runs; a failure puts them back.
+  const setLocal = (value: boolean) =>
+    (areas.value = areas.value.map((a) =>
+      a.id === area.id ? { ...a, active: value } : a,
+    ));
+  setLocal(active);
   try {
-    const updated = await updateAlertArea(area.id, { active }, token());
-    areas.value = areas.value.map((a) => (a.id === updated.id ? updated : a));
-    // Pausing is easy to forget and silently stops the emails: say what it does.
-    toast.add(
-      active
-        ? {
-            title: "Avisos reanudados",
-            description: `Te vamos a avisar de nuevo por focos en «${area.name}».`,
-            color: "success",
-          }
-        : {
-            title: "Avisos pausados",
-            description: `No vas a recibir emails por «${area.name}» hasta que la reactives.`,
-            color: "neutral",
-          },
-    );
+    await updateAlertArea(area.id, { active }, token());
   } catch (error) {
+    setLocal(!active);
     if (!isUnauthorized(error))
-      toast.add({ title: "No se pudo actualizar la zona", color: "error" });
+      toast.add({
+        title: "No se pudo actualizar la zona",
+        description: active
+          ? `«${area.name}» sigue pausada.`
+          : `«${area.name}» sigue activa.`,
+        color: "error",
+      });
+    return;
   }
+  // Pausing is easy to forget and silently stops the emails: say what it does
+  // (once it's saved, so it never contradicts an error).
+  toast.add(
+    active
+      ? {
+          title: "Avisos reanudados",
+          description: `Te vamos a avisar de nuevo por focos en «${area.name}».`,
+          color: "success",
+        }
+      : {
+          title: "Avisos pausados",
+          description: `No vas a recibir emails por «${area.name}» hasta que la reactives.`,
+          color: "neutral",
+        },
+  );
 }
 
 async function confirmDelete() {

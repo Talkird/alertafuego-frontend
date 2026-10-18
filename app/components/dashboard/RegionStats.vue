@@ -4,28 +4,28 @@ import type { RegionKind } from "~/types";
 const TOP = 10;
 const SKELETON_WIDTHS = [100, 72, 54, 38, 24];
 
-const kind = ref<RegionKind>("province");
 const kindOptions = [
   { label: "Provincias", value: "province" },
   { label: "Departamentos", value: "department" },
 ];
 
-const { query: rangeQuery, place, placeQuery } = storeToRefs(useFiltersStore());
+const {
+  query: rangeQuery,
+  placeQuery,
+  regionBreakdown,
+} = storeToRefs(useFiltersStore());
+
+// The user picks provinces or departments for the whole country; inside a
+// province or a zone, only departments make sense (see regionBreakdown).
+const chosenKind = ref<RegionKind>("province");
+const kind = computed<RegionKind>(() =>
+  regionBreakdown.value === "choice" ? chosenKind.value : "department",
+);
 const query = computed(() => ({
   kind: kind.value,
   ...rangeQuery.value,
   ...placeQuery.value,
 }));
-
-// Within a province, provinces would be a single row: break it down instead.
-watch(
-  place,
-  (value) => {
-    if (value.kind === "region" && value.code.length === 2)
-      kind.value = "department";
-  },
-  { immediate: true },
-);
 
 const { data: regions, status, error } = useRegionStats(query);
 useFetchErrorToast(error, "No se pudieron cargar las estadísticas");
@@ -38,8 +38,20 @@ const max = computed(() => top.value[0]?.detection_count ?? 1);
   <UCard>
     <template #header>
       <div class="flex items-center justify-between gap-3">
-        <p class="text-highlighted text-sm font-medium">Focos por región</p>
-        <USelect v-model="kind" :items="kindOptions" size="xs" class="w-36" />
+        <p class="text-highlighted text-sm font-medium">
+          {{
+            regionBreakdown === "choice"
+              ? "Focos por región"
+              : "Focos por departamento"
+          }}
+        </p>
+        <USelect
+          v-if="regionBreakdown === 'choice'"
+          v-model="chosenKind"
+          :items="kindOptions"
+          size="xs"
+          class="w-36"
+        />
       </div>
     </template>
 

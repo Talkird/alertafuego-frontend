@@ -45,6 +45,8 @@ function reset() {
       variant="ghost"
       class="data-[state=open]:bg-elevated -ms-1"
       aria-label="Período"
+      :content="{ align: 'start' }"
+      :ui="{ content: 'min-w-fit' }"
     />
     <DashboardDateRangePicker v-if="!recentMinutes" v-model="range" />
 

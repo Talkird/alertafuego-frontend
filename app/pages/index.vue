@@ -174,7 +174,7 @@ const plans = computed<PricingPlanProps[]>(() => {
       features: [
         "Todo lo del plan Alerta",
         "Hasta 10 zonas de alerta",
-        "Dashboard completo con filtros por país, provincia y departamento",
+        "Dashboard completo con filtros por provincia y departamento",
         "Reportes exportables",
       ],
       button: { label: "Elegir Análisis", to },
@@ -284,7 +284,7 @@ const plans = computed<PricingPlanProps[]>(() => {
           v-model="billing"
           :items="billingItems"
           :content="false"
-          color="neutral"
+          color="primary"
           size="sm"
           class="w-56"
         />
