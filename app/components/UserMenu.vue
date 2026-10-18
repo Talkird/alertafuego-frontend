@@ -86,12 +86,6 @@ const items = computed<DropdownMenuItem[][]>(() => [
 
   [
     {
-      label: "Repositorio de GitHub",
-      icon: "i-simple-icons-github",
-      to: "https://github.com/Talkird/alertafuego-frontend",
-      target: "_blank",
-    },
-    {
       label: "Cerrar sesión",
       icon: "i-lucide-log-out",
       onClick: signOut,
