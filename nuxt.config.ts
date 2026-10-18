@@ -6,6 +6,18 @@ const apiBase =
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
+
+  app: {
+    head: {
+      // The SVG stays sharp at any size; favicon.ico is the fallback for
+      // browsers without SVG favicons, icon.png the iOS home-screen icon.
+      link: [
+        { rel: "icon", type: "image/svg+xml", href: "/icon.svg" },
+        { rel: "apple-touch-icon", href: "/icon.png" },
+      ],
+    },
+  },
+
   modules: [
     "@nuxt/ui",
     "@nuxt/image",
