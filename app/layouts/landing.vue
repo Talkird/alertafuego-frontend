@@ -55,21 +55,6 @@ const access = computed(() =>
     ? { label: "Ir al mapa", to: "/mapa" }
     : { label: "Iniciar sesión", to: "/login" },
 );
-
-const footerLinks = [
-  {
-    label: "Frontend",
-    icon: "i-simple-icons-github",
-    to: "https://github.com/Talkird/alertafuego-frontend",
-    target: "_blank",
-  },
-  {
-    label: "Backend",
-    icon: "i-simple-icons-github",
-    to: "https://github.com/Talkird/alertafuego-backend",
-    target: "_blank",
-  },
-];
 </script>
 
 <template>
@@ -106,17 +91,6 @@ const footerLinks = [
         <p class="text-muted text-sm">
           AlertaFuego © {{ new Date().getFullYear() }}
         </p>
-      </template>
-
-      <template #right>
-        <UButton
-          v-for="link in footerLinks"
-          :key="link.label"
-          v-bind="link"
-          color="neutral"
-          variant="ghost"
-          size="sm"
-        />
       </template>
     </UFooter>
   </div>
