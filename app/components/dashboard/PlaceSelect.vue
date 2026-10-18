@@ -28,7 +28,14 @@ const toKey = (value: Place) =>
 function fromKey(key: string): Place {
   const [kind, id] = key.split(":");
   if (kind === "region") return { kind: "region", code: id! };
-  if (kind === "area") return { kind: "area", id: Number(id) };
+  if (kind === "area") {
+    const area = areas.value.find((a) => a.id === Number(id));
+    return {
+      kind: "area",
+      id: Number(id),
+      regionCode: area?.region?.code ?? null,
+    };
+  }
   return { kind: "country" };
 }
 

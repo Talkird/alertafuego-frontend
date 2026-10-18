@@ -26,5 +26,22 @@ export const useFiltersStore = defineStore("filters", () => {
     return {};
   });
 
-  return { range, query, place, placeQuery };
+  // How "Focos por región" can break the place down. The whole country: by
+  // province or department, the user's choice. A province, or a circle or
+  // polygon zone (which can cross department lines): by department. A single
+  // department: nothing to break down.
+  const regionBreakdown = computed<"choice" | "department" | "none">(() => {
+    const value = place.value;
+    const code =
+      value.kind === "region"
+        ? value.code
+        : value.kind === "area"
+          ? value.regionCode
+          : null;
+    if (value.kind === "country") return "choice";
+    if (code && code.length === 5) return "none"; // department codes have 5 digits
+    return "department";
+  });
+
+  return { range, query, place, placeQuery, regionBreakdown };
 });

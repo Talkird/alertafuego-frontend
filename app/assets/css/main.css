@@ -76,6 +76,24 @@ html.dark .af-tiles-ign {
   box-shadow: none;
 }
 
+/* Map tooltips (recurrence cells), matching .af-popup. */
+.leaflet-tooltip.af-tooltip {
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: calc(var(--ui-radius) * 2);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.leaflet-tooltip-top.af-tooltip::before {
+  border-top-color: var(--ui-border);
+}
+
 .leaflet-bar {
   border: 1px solid var(--ui-border) !important;
   border-radius: calc(var(--ui-radius) * 2) !important;

@@ -10,9 +10,13 @@
         :key="level.label"
         class="text-toned flex items-center gap-2"
       >
+        <!-- Same subtle style as the cells: light fill, solid outline. -->
         <span
-          class="size-2.5 rounded-full"
-          :style="{ backgroundColor: level.color }"
+          class="size-2.5 rounded-full border-[1.5px]"
+          :style="{
+            borderColor: level.color,
+            backgroundColor: `${level.color}59`,
+          }"
         />
         {{ level.label }}
       </li>

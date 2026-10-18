@@ -19,6 +19,7 @@ const {
   query: rangeQuery,
   place,
   placeQuery,
+  regionBreakdown,
 } = storeToRefs(useFiltersStore());
 const query = computed(() => ({ ...rangeQuery.value, ...placeQuery.value }));
 const period = ref<Period>("daily");
@@ -255,8 +256,12 @@ const sorting = ref([]);
         :loading="hoursStatus === 'pending'"
       />
 
-      <div class="grid shrink-0 gap-4 lg:grid-cols-2">
-        <DashboardRegionStats />
+      <!-- A single department has no regions to rank: reports take the row. -->
+      <div
+        class="grid shrink-0 gap-4"
+        :class="{ 'lg:grid-cols-2': regionBreakdown !== 'none' }"
+      >
+        <DashboardRegionStats v-if="regionBreakdown !== 'none'" />
         <DashboardReportStats />
       </div>
 
