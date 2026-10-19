@@ -12,6 +12,21 @@ const owmApiKey = useRuntimeConfig().public.owmApiKey;
 <template>
   <!-- af-tiles-ign: only this layer is color-inverted in dark mode (main.css);
        inverting satellite imagery would make it unreadable. -->
+  <!-- IGN's tile server goes down or slows to a crawl at times (often at night),
+       leaving the map blank. Esri's gray canvas goes underneath as a backdrop:
+       IGN's opaque tiles cover it wherever they load. The base variant, without
+       Esri's place labels (they name the Malvinas "Falkland Islands"). -->
+  <LTileLayer
+    v-if="base === 'map'"
+    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+    attribution="Base &amp;copy; Esri"
+    layer-type="base"
+    name="Mapa (Esri)"
+    class-name="af-tiles-ign"
+    :z-index="0"
+    :options="{ maxNativeZoom: 16 }"
+    no-wrap
+  />
   <LTileLayer
     v-if="base === 'map'"
     url="https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png"
@@ -19,6 +34,7 @@ const owmApiKey = useRuntimeConfig().public.owmApiKey;
     layer-type="base"
     name="Argenmap (IGN)"
     class-name="af-tiles-ign"
+    :z-index="1"
     no-wrap
   />
   <!-- Esri has zoom 18 only in some areas (cities); elsewhere in Argentina it
