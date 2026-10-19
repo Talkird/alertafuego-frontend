@@ -55,7 +55,7 @@ const features = [
     icon: "i-lucide-bell-ring",
     title: "Alertas por zona",
     description:
-      "Marcá un punto y un radio, por ejemplo tu campo o tu localidad, y recibí un email cuando se detecte un foco dentro de esa zona.",
+      "Definí una zona, ya sea un punto con su radio, un polígono dibujado en el mapa o una provincia o departamento, y recibí un aviso por email o Telegram cuando se detecte un foco dentro de ella.",
   },
   {
     icon: "i-lucide-message-square-warning",
@@ -155,7 +155,7 @@ const plans = computed<PricingPlanProps[]>(() => {
       ...paid("USD 15", "USD 150"),
       features: [
         "Alertas por hasta 3 zonas",
-        "Avisos por email, WhatsApp y Telegram",
+        "Avisos por email, Telegram y WhatsApp (próximamente)",
         "Análisis de tus zonas",
         "Reportes exportables de tus zonas",
       ],
@@ -225,7 +225,7 @@ const plans = computed<PricingPlanProps[]>(() => {
       id="funcionalidades"
       headline="Funcionalidades"
       title="Información satelital al servicio de la prevención"
-      description="Detección automática, mapa, alertas por email y validación colaborativa, en una sola plataforma."
+      description="Detección automática, mapa, alertas por email y Telegram, y validación colaborativa, en una sola plataforma."
       class="scroll-mt-(--ui-header-height)"
     >
       <UPageGrid>
