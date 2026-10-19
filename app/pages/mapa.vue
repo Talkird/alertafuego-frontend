@@ -10,7 +10,7 @@ useSeoMeta({
 
 const { range, query: rangeQuery } = storeToRefs(useFiltersStore());
 const toast = useToast();
-const minConfidence = ref(0);
+const minConfidence = ref(DEFAULT_MIN_CONFIDENCE);
 const maxReports = ref(20);
 const baseLayer = ref<BaseLayer>("map");
 // A constant, not an inline array: vue-leaflet re-centers the map whenever the

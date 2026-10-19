@@ -26,12 +26,12 @@ const maxReportsLabel = computed(() =>
 
 const activeCount = computed(
   () =>
-    Number(minConfidence.value > 0) +
+    Number(minConfidence.value !== DEFAULT_MIN_CONFIDENCE) +
     Number(maxReports.value < MAX_REPORTS_BOUND),
 );
 
 function reset() {
-  minConfidence.value = 0;
+  minConfidence.value = DEFAULT_MIN_CONFIDENCE;
   maxReports.value = MAX_REPORTS_BOUND;
 }
 </script>

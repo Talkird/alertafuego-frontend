@@ -9,3 +9,7 @@ export function detectionColor(probability: number): string {
 export function parseUtc(iso: string): Date {
   return new Date(iso.endsWith("Z") ? iso : `${iso}Z`);
 }
+
+/** The map's default minimum probability filter, in percent. Lower-probability
+ * detections are mostly false positives; users can lower it in the filters. */
+export const DEFAULT_MIN_CONFIDENCE = 50;
