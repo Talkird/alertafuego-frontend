@@ -86,6 +86,21 @@ test.describe("signed in", () => {
     await expect(page.getByText("vecino@example.com").first()).toBeVisible();
   });
 
+  test("signing out ends the session", async ({ page }) => {
+    await page.goto("/mapa");
+    const logout = page.waitForRequest((r) =>
+      r.url().includes("/auth/v1/logout"),
+    );
+    await page.getByRole("button", { name: /Vecina de Prueba/ }).click();
+    await page.getByRole("menuitem", { name: "Cerrar sesión" }).click();
+    await logout;
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByText("Sesión cerrada").first()).toBeVisible();
+    // Protected pages are closed again.
+    await page.goto("/mapa");
+    await expect(page).toHaveURL(/\/login$/);
+  });
+
   test("old /dashboard URL redirects to statistics", async ({ page }) => {
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/estadisticas$/);
