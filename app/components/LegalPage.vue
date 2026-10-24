@@ -30,8 +30,10 @@ defineProps<{ title: string }>();
 .legal :deep(ul) {
   @apply mt-3 list-disc space-y-1.5 pl-6;
 }
+/* Always underlined: inside a paragraph, color alone doesn't tell a link apart
+ * (WCAG 1.4.1). */
 .legal :deep(a) {
-  @apply text-primary underline-offset-2 hover:underline;
+  @apply text-primary underline underline-offset-2;
 }
 .legal :deep(strong) {
   @apply text-highlighted font-medium;

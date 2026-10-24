@@ -1,8 +1,9 @@
 name: CI
 
 # Runs the same install + build as deploy-site.yml on every PR to main, so a
-# broken build fails here instead of after the merge. Make this required in
-# the branch protection rule for main to block merging until it passes.
+# broken build fails here instead of after the merge, plus the unit and E2E
+# tests. Make these required in the branch protection rule for main to block
+# merging until they pass.
 on:
   pull_request:
     branches: [main]
@@ -33,3 +34,57 @@ jobs:
         env:
           NUXT_PUBLIC_SUPABASE_URL: ${{ secrets.NUXT_PUBLIC_SUPABASE_URL }}
           NUXT_PUBLIC_SUPABASE_KEY: ${{ secrets.NUXT_PUBLIC_SUPABASE_KEY }}
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Use npm 11.20.0
+        run: npm install -g npm@11.20.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest with coverage
+        run: npm run test:coverage
+
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Use npm 11.20.0
+        run: npm install -g npm@11.20.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Generates the site with test URLs for the backend and Supabase (see
+      # playwright.config.ts): no secrets, every request is answered by the tests.
+      - name: Run Playwright
+        run: npm run test:e2e
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: |
+            junit-e2e.xml
+            test-results/

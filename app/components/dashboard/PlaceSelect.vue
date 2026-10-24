@@ -75,6 +75,16 @@ const items = computed<SelectMenuItem[][]>(() => {
   );
   return groups;
 });
+
+// The trigger shows the chosen place: its accessible name has to include that
+// visible text (WCAG 2.5.3), not only "Lugar".
+// Every item above is an object with a value.
+const selectedLabel = computed(
+  () =>
+    (items.value.flat() as { value?: string; label?: string }[]).find(
+      (item) => item.value === key.value,
+    )?.label ?? "",
+);
 </script>
 
 <template>
@@ -86,6 +96,6 @@ const items = computed<SelectMenuItem[][]>(() => {
     :search-input="{ placeholder: 'Buscar lugar…' }"
     :content="{ align: 'end' }"
     class="w-44 sm:w-56"
-    aria-label="Lugar"
+    :aria-label="`Lugar: ${selectedLabel}`"
   />
 </template>

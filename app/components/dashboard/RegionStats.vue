@@ -51,6 +51,7 @@ const max = computed(() => top.value[0]?.detection_count ?? 1);
           :items="kindOptions"
           size="xs"
           class="w-36"
+          aria-label="Tipo de región"
         />
       </div>
     </template>

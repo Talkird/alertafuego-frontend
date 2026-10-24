@@ -32,3 +32,9 @@ terraform/**/*.tfvars
 terraform/**/*.tfvars.json
 terraform/**/crash.log
 terraform/**/crash.*.log
+
+# Tests
+coverage
+test-results
+playwright-report
+junit*.xml

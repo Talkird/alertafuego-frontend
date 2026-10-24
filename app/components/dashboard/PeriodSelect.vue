@@ -48,6 +48,7 @@ watch(
     :items="items"
     variant="ghost"
     class="data-[state=open]:bg-elevated"
+    aria-label="Agrupación"
     :ui="{
       trailingIcon:
         'group-data-[state=open]:rotate-180 transition-transform duration-200',
